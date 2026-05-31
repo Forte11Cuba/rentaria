@@ -47,7 +47,7 @@ def _tienda_ctx(tienda, request):
 
 # ── Mis tiendas ────────────────────────────────────────────────────────────────
 
-def mis_tiendas(request):
+def my_shops(request):
     guard = _solo_dueno(request)
     if guard:
         return guard
@@ -55,7 +55,7 @@ def mis_tiendas(request):
     return render(request, 'admin_panel/my_shops.html', {'tiendas': tiendas})
 
 
-def cuenta(request):
+def settings(request):
     guard = _solo_dueno(request)
     if guard:
         return guard
@@ -87,7 +87,7 @@ def cuenta(request):
     })
 
 
-def tienda_crear(request):
+def shop_create(request):
     guard = _solo_dueno(request)
     if guard:
         return guard
@@ -106,7 +106,7 @@ def tienda_crear(request):
 
 # ── Inventario ─────────────────────────────────────────────────────────────────
 
-def inventario(request, slug):
+def inventory(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     modelos = ModeloMoto.objects.filter(tienda=tienda).prefetch_related('motos', 'planes')
     ctx = _tienda_ctx(tienda, request)
@@ -178,7 +178,7 @@ def _procesar_cargos_post(request, modelo):
         )
 
 
-def modelo_crear(request, slug):
+def model_create(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = ModeloMotoForm(request.POST, request.FILES)
@@ -197,7 +197,7 @@ def modelo_crear(request, slug):
     return render(request, 'admin_panel/inventory/model_form.html', ctx)
 
 
-def modelo_editar(request, slug, pk):
+def model_edit(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     modelo = get_object_or_404(ModeloMoto, pk=pk, tienda=tienda)
     if request.method == 'POST':
@@ -222,7 +222,7 @@ def modelo_editar(request, slug, pk):
 
 
 @require_POST
-def modelo_toggle(request, slug, pk):
+def model_toggle(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     modelo = get_object_or_404(ModeloMoto, pk=pk, tienda=tienda)
     modelo.activo = not modelo.activo
@@ -239,7 +239,7 @@ def _sincronizar_imagen_modelo(modelo):
 
 
 @require_POST
-def foto_subir(request, slug, pk):
+def photo_upload(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     modelo = get_object_or_404(ModeloMoto, pk=pk, tienda=tienda)
     files = request.FILES.getlist('fotos')
@@ -251,7 +251,7 @@ def foto_subir(request, slug, pk):
 
 
 @require_POST
-def foto_eliminar(request, slug, pk, foto_pk):
+def photo_delete(request, slug, pk, foto_pk):
     tienda = _tienda_del_dueno(slug, request)
     modelo = get_object_or_404(ModeloMoto, pk=pk, tienda=tienda)
     foto = get_object_or_404(FotoModelo, pk=foto_pk, modelo=modelo)
@@ -262,7 +262,7 @@ def foto_eliminar(request, slug, pk, foto_pk):
 
 
 @require_POST
-def foto_reordenar(request, slug, pk, foto_pk):
+def photo_reorder(request, slug, pk, foto_pk):
     tienda = _tienda_del_dueno(slug, request)
     modelo = get_object_or_404(ModeloMoto, pk=pk, tienda=tienda)
     foto = get_object_or_404(FotoModelo, pk=foto_pk, modelo=modelo)
@@ -283,7 +283,7 @@ def foto_reordenar(request, slug, pk, foto_pk):
     return redirect('owner_model_edit', slug=slug, pk=pk)
 
 
-def moto_agregar(request, slug):
+def unit_add(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = MotoForm(request.POST, tienda=tienda)
@@ -301,7 +301,7 @@ def moto_agregar(request, slug):
 
 
 @require_POST
-def moto_toggle(request, slug, chapa):
+def unit_toggle(request, slug, chapa):
     tienda = _tienda_del_dueno(slug, request)
     moto = get_object_or_404(Moto, chapa=chapa, tienda=tienda)
     moto.activa = not moto.activa
@@ -312,7 +312,7 @@ def moto_toggle(request, slug, chapa):
 
 
 @require_POST
-def moto_eliminar(request, slug, chapa):
+def unit_delete(request, slug, chapa):
     tienda = _tienda_del_dueno(slug, request)
     moto = get_object_or_404(Moto, chapa=chapa, tienda=tienda)
     try:
@@ -325,7 +325,7 @@ def moto_eliminar(request, slug, chapa):
 
 # ── Formulario ─────────────────────────────────────────────────────────────────
 
-def formulario(request, slug):
+def form(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     campos = CampoFormulario.objects.filter(tienda=tienda).order_by('orden')
     ctx = _tienda_ctx(tienda, request)
@@ -333,7 +333,7 @@ def formulario(request, slug):
     return render(request, 'admin_panel/form/list.html', ctx)
 
 
-def campo_crear(request, slug):
+def field_create(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = CampoFormularioForm(request.POST, tienda=tienda)
@@ -351,7 +351,7 @@ def campo_crear(request, slug):
     return render(request, 'admin_panel/form/field_form.html', ctx)
 
 
-def campo_editar(request, slug, pk):
+def field_edit(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     campo = get_object_or_404(CampoFormulario, pk=pk, tienda=tienda)
     if request.method == 'POST':
@@ -368,7 +368,7 @@ def campo_editar(request, slug, pk):
 
 
 @require_POST
-def campo_eliminar(request, slug, pk):
+def field_delete(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     campo = get_object_or_404(CampoFormulario, pk=pk, tienda=tienda)
     nombre = campo.etiqueta
@@ -381,7 +381,7 @@ def campo_eliminar(request, slug, pk):
 
 
 @require_POST
-def campo_reordenar(request, slug):
+def field_reorder(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     try:
         data = json.loads(request.body)
@@ -401,7 +401,7 @@ _SYSTEM_VARS = [
 ]
 
 
-def contrato(request, slug):
+def contract(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     plantilla = PlantillaContrato.objects.filter(tienda=tienda).first()
     campos = CampoFormulario.objects.filter(tienda=tienda, activo=True).order_by('orden')
@@ -412,7 +412,7 @@ def contrato(request, slug):
 
 
 @require_POST
-def contrato_guardar(request, slug):
+def contract_save(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     plantilla, _ = PlantillaContrato.objects.get_or_create(
         tienda=tienda, defaults={'contenido_md': ''}
@@ -430,7 +430,7 @@ def contrato_guardar(request, slug):
 
 # ── Cuentas ────────────────────────────────────────────────────────────────────
 
-def cuentas_lista(request, slug):
+def accounts_list(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     cuentas = Cuenta.objects.filter(tienda=tienda).order_by('nombre')
     ctx = _tienda_ctx(tienda, request)
@@ -438,7 +438,7 @@ def cuentas_lista(request, slug):
     return render(request, 'admin_panel/accounts/list.html', ctx)
 
 
-def cuenta_crear(request, slug):
+def account_create(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = CuentaForm(request.POST)
@@ -455,7 +455,7 @@ def cuenta_crear(request, slug):
     return render(request, 'admin_panel/accounts/account_form.html', ctx)
 
 
-def cuenta_editar(request, slug, pk):
+def account_edit(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     cuenta = get_object_or_404(Cuenta, pk=pk, tienda=tienda)
     if request.method == 'POST':
@@ -471,7 +471,7 @@ def cuenta_editar(request, slug, pk):
     return render(request, 'admin_panel/accounts/account_form.html', ctx)
 
 
-def cuenta_detalle(request, slug, pk):
+def account_detail(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     cuenta = get_object_or_404(Cuenta, pk=pk, tienda=tienda)
     operaciones = (
@@ -485,7 +485,7 @@ def cuenta_detalle(request, slug, pk):
     return render(request, 'admin_panel/accounts/detail.html', ctx)
 
 
-def operacion_nueva(request, slug, pk):
+def operation_new(request, slug, pk):
     tienda = _tienda_del_dueno(slug, request)
     cuenta = get_object_or_404(Cuenta, pk=pk, tienda=tienda)
     if request.method == 'POST':
@@ -512,7 +512,7 @@ def operacion_nueva(request, slug, pk):
 
 
 @require_POST
-def operacion_eliminar(request, slug, op_pk):
+def operation_delete(request, slug, op_pk):
     tienda = _tienda_del_dueno(slug, request)
     op = get_object_or_404(Operacion, pk=op_pk, cuenta__tienda=tienda)
     cuenta_pk = op.cuenta_id
@@ -525,7 +525,7 @@ def operacion_eliminar(request, slug, op_pk):
     return redirect('owner_account_detail', slug=slug, pk=cuenta_pk)
 
 
-def transferencia_nueva(request, slug):
+def transfer_new(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = TransferenciaForm(request.POST, tienda=tienda)
@@ -610,7 +610,7 @@ def dashboard(request, slug):
 
 # ── Órdenes ────────────────────────────────────────────────────────────────────
 
-def ordenes_lista(request, slug):
+def orders_list(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     estado = request.GET.get('estado', '')
 
@@ -627,7 +627,7 @@ def ordenes_lista(request, slug):
     return render(request, 'admin_panel/orders/list.html', ctx)
 
 
-def orden_detalle(request, slug, orden_id):
+def order_detail(request, slug, orden_id):
     tienda = _tienda_del_dueno(slug, request)
     orden = get_object_or_404(Orden, id=orden_id, tienda=tienda)
     lineas = orden.lineas.select_related('moto', 'modelo').all()
@@ -653,7 +653,7 @@ def orden_detalle(request, slug, orden_id):
 
 
 @require_POST
-def orden_confirmar(request, slug, orden_id):
+def order_confirm(request, slug, orden_id):
     tienda = _tienda_del_dueno(slug, request)
     orden = get_object_or_404(Orden, id=orden_id, tienda=tienda, estado='pendiente', metodo_pago='cash')
     _confirmar_orden(orden)
@@ -662,7 +662,7 @@ def orden_confirmar(request, slug, orden_id):
 
 
 @require_POST
-def orden_cancelar(request, slug, orden_id):
+def order_cancel(request, slug, orden_id):
     tienda = _tienda_del_dueno(slug, request)
     orden = get_object_or_404(Orden, id=orden_id, tienda=tienda)
     if orden.estado == 'cancelada':
@@ -675,7 +675,7 @@ def orden_cancelar(request, slug, orden_id):
 
 
 @require_POST
-def orden_reasignar(request, slug, orden_id):
+def order_reassign(request, slug, orden_id):
     tienda = _tienda_del_dueno(slug, request)
     orden = get_object_or_404(Orden, id=orden_id, tienda=tienda)
     linea = get_object_or_404(LineaOrden, pk=request.POST.get('linea_id'), orden=orden)
@@ -688,7 +688,7 @@ def orden_reasignar(request, slug, orden_id):
     return redirect('owner_order_detail', slug=slug, orden_id=orden_id)
 
 
-def orden_contrato_pdf(request, slug, orden_id):
+def order_contract_pdf(request, slug, orden_id):
     tienda = _tienda_del_dueno(slug, request)
     orden = get_object_or_404(Orden, id=orden_id, tienda=tienda)
 
@@ -707,7 +707,7 @@ def orden_contrato_pdf(request, slug, orden_id):
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 
-def configuracion(request, slug):
+def shop_settings(request, slug):
     tienda = _tienda_del_dueno(slug, request)
     if request.method == 'POST':
         form = TiendaDuenoForm(request.POST, request.FILES, instance=tienda)
@@ -724,7 +724,7 @@ def configuracion(request, slug):
 
 # ── Calendario ─────────────────────────────────────────────────────────────────
 
-def calendario(request, slug):
+def calendar(request, slug):
     guard = _solo_dueno(request)
     if guard:
         return guard
@@ -733,7 +733,7 @@ def calendario(request, slug):
     return render(request, 'admin_panel/calendar.html', ctx)
 
 
-def calendario_eventos(request, slug):
+def calendar_events(request, slug):
     guard = _solo_dueno(request)
     if guard:
         return guard
@@ -792,7 +792,7 @@ def calendario_eventos(request, slug):
     return JsonResponse(events, safe=False)
 
 
-def calendario_dia(request, slug, dia):
+def calendar_day(request, slug, dia):
     guard = _solo_dueno(request)
     if guard:
         return guard

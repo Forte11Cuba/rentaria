@@ -23,7 +23,7 @@ def dashboard(request):
     return render(request, 'superadmin/dashboard.html', context)
 
 
-def usuarios(request):
+def users(request):
     pendientes = Usuario.objects.filter(rol='dueno', estado='pendiente').order_by('-date_joined')
     activos_qs = Usuario.objects.filter(rol='dueno', estado='activo').order_by('username')
     activos_page = Paginator(activos_qs, 50).get_page(request.GET.get('page', 1))
@@ -34,7 +34,7 @@ def usuarios(request):
 
 
 @require_POST
-def usuario_aprobar(request, pk):
+def user_approve(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
     usuario.estado = 'activo'
     usuario.save()
@@ -44,7 +44,7 @@ def usuario_aprobar(request, pk):
 
 
 @require_POST
-def usuario_rechazar(request, pk):
+def user_reject(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
     usuario.estado = 'rechazado'
     usuario.save()
@@ -54,7 +54,7 @@ def usuario_rechazar(request, pk):
 
 
 @require_POST
-def usuario_eliminar(request, pk):
+def user_delete(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
     username = usuario.username
     try:
@@ -65,7 +65,7 @@ def usuario_eliminar(request, pk):
     return redirect('superadmin_users')
 
 
-def usuario_cambiar_password(request, pk):
+def user_change_password(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
     if request.method == 'POST':
         form = SetPasswordForm(usuario, request.POST)
@@ -81,12 +81,12 @@ def usuario_cambiar_password(request, pk):
     })
 
 
-def tiendas(request):
+def shops(request):
     todas = Tienda.objects.select_related('dueno').order_by('-created_at')
     return render(request, 'superadmin/shops.html', {'tiendas': todas})
 
 
-def tienda_crear(request):
+def shop_create(request):
     if request.method == 'POST':
         form = TiendaSuperadminForm(request.POST)
         if form.is_valid():
@@ -98,7 +98,7 @@ def tienda_crear(request):
     return render(request, 'superadmin/shop_create.html', {'form': form})
 
 
-def ordenes(request):
+def orders(request):
     qs = Orden.objects.select_related('tienda').order_by('-created_at')
 
     filtro_tienda = request.GET.get('tienda', '')

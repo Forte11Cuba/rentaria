@@ -49,7 +49,7 @@ def _unidades_disponibles(modelo, fecha_inicio, fecha_fin):
 
 # ── Step 1: date picker ────────────────────────────────────────────────────────
 
-def step1_fechas(request, slug):
+def step1_dates(request, slug):
     tienda = _get_tienda(slug)
     today = date.today()
 
@@ -107,7 +107,7 @@ def step1_fechas(request, slug):
 
 # ── Step 2: model selection ────────────────────────────────────────────────────
 
-def step2_modelos(request, slug):
+def step2_models(request, slug):
     tienda = _get_tienda(slug)
     sesion = request.session.get('reserva', {})
 
@@ -180,7 +180,7 @@ def step2_modelos(request, slug):
 
 # ── Availability endpoint ──────────────────────────────────────────────────────
 
-def disponibilidad(request, slug):
+def availability(request, slug):
     tienda = _get_tienda(slug)
     try:
         modelo = ModeloMoto.objects.get(
@@ -208,7 +208,7 @@ def _campos_con_valores(campos, valores, errores=None):
     ]
 
 
-def step3_formulario(request, slug):
+def step3_form(request, slug):
     tienda = _get_tienda(slug)
     sesion = request.session.get('reserva', {})
 
@@ -246,7 +246,7 @@ def step3_formulario(request, slug):
 
 # ── Step 4: payment method ─────────────────────────────────────────────────────
 
-def step4_pago(request, slug):
+def step4_payment(request, slug):
     tienda = _get_tienda(slug)
     sesion = request.session.get('reserva', {})
 
@@ -300,7 +300,7 @@ def step4_pago(request, slug):
 # ── Create order ───────────────────────────────────────────────────────────────
 
 @require_POST
-def reservar_crear(request, slug):
+def book_create(request, slug):
     tienda = _get_tienda(slug)
     sesion = request.session.get('reserva', {})
 
@@ -430,7 +430,7 @@ def reservar_crear(request, slug):
 
 # ── Bitcoin payment page ───────────────────────────────────────────────────────
 
-def pago_bitcoin(request, orden_id):
+def payment_bitcoin(request, orden_id):
     orden = get_object_or_404(Orden, id=orden_id, metodo_pago='bitcoin_btcpay')
 
     if orden.estado == 'confirmada':
@@ -473,7 +473,7 @@ def pago_bitcoin(request, orden_id):
     })
 
 
-def pago_status(request, orden_id):
+def payment_status(request, orden_id):
     orden = get_object_or_404(Orden, id=orden_id)
 
     if orden.estado == 'confirmada':
@@ -552,7 +552,7 @@ def webhook_btcpay(request):
 
 # ── Confirmation ───────────────────────────────────────────────────────────────
 
-def confirmacion(request, orden_id):
+def confirmation(request, orden_id):
     orden = get_object_or_404(Orden, id=orden_id)
 
     # Si es Bitcoin pendiente, consultar BTCPay para confirmar al instante
@@ -581,7 +581,7 @@ def confirmacion(request, orden_id):
     })
 
 
-def confirmacion_contrato_pdf(request, orden_id):
+def confirmation_contract_pdf(request, orden_id):
     from services.contrato import generar_pdf_contrato
     orden = get_object_or_404(Orden, id=orden_id, estado='confirmada')
     if not orden.contrato_pdf:
