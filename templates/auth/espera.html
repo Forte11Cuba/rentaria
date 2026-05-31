@@ -1,0 +1,27 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Cuenta en revisión — Rentaria{% endblock %}
+
+{% block card %}
+<div class="text-center">
+    <div class="w-12 h-12 rounded-full bg-[#f7931a]/10 border border-[#f7931a]/30 flex items-center justify-center mx-auto mb-5">
+        <svg class="w-5 h-5 text-[#f7931a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    </div>
+
+    <h2 class="text-sm font-semibold text-[#c9cdd4] mb-2">Cuenta en revisión</h2>
+    <p class="text-xs text-[#c9cdd4] opacity-50 leading-relaxed">
+        Tu cuenta está siendo revisada por el equipo de Rentaria.<br>
+        Te notificaremos por email cuando sea aprobada.
+    </p>
+</div>
+{% endblock %}
+
+{% block below_card %}
+<p class="mt-4 text-center text-xs text-[#c9cdd4] opacity-40">
+    ¿Ya fuiste aprobado?
+    <a href="{% url 'login' %}" class="text-[#f7931a] opacity-100 hover:underline">Inicia sesión</a>
+</p>
+{% endblock %}

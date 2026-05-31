@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rentaria{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+
+    <!-- Google Fonts: Barlow Condensed (títulos), Barlow (cuerpo), Space Mono (precios) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN Play -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'br-bg':      '#080806',
+                        'br-card':    '#141414',
+                        'br-border':  '#222222',
+                        'br-accent':  '#f7931a',
+                    },
+                    fontFamily: {
+                        'title':  ['"Barlow Condensed"', 'sans-serif'],
+                        'body':   ['Barlow', 'sans-serif'],
+                        'price':  ['"Space Mono"', 'monospace'],
+                    },
+                    borderRadius: {
+                        DEFAULT: '0',
+                        sm: '0',
+                        md: '0',
+                        lg: '0',
+                        xl: '0',
+                        '2xl': '0',
+                        '3xl': '0',
+                        full: '0',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Global sharp borders */
+        *, *::before, *::after {
+            border-radius: 0 !important;
+        }
+        body {
+            font-family: 'Barlow', sans-serif;
+            background-color: #080806;
+            color: #e5e5e5;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Barlow Condensed', sans-serif;
+        }
+        .price {
+            font-family: 'Space Mono', monospace;
+        }
+    </style>
+
+    <!-- HTMX via CDN -->
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#080806] text-gray-200 min-h-screen">
+
+    <header class="border-b border-[#222222] bg-[#080806]">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/">
+                <img src="{% static 'img/logo.png' %}" alt="Rentaria" class="h-32 object-contain">
+            </a>
+            {% block header_nav %}{% endblock %}
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-[#222222] mt-16">
+        <div class="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-gray-600">
+            &copy; 2026 Rentaria — MIT License
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Mis tiendas — Rentaria{% endblock %}
+
+{% block sidebar_nav %}
+<nav class="space-y-0.5">
+    <a href="{% url 'owner_my_shops' %}"
+       class="flex items-center gap-2.5 px-3 py-2 text-sm text-br-accent bg-br-bg">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Mis tiendas
+    </a>
+    <a href="{% url 'owner_settings' %}"
+       class="flex items-center gap-2.5 px-3 py-2 text-sm text-br-text opacity-60 hover:opacity-100 hover:bg-br-bg transition-colors">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        Mi cuenta
+    </a>
+</nav>
+{% endblock %}
+
+{% block page_title %}Mis tiendas{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-base font-semibold text-br-text">Mis tiendas</h2>
+    <a href="{% url 'owner_shop_create' %}"
+       class="flex items-center gap-2 px-4 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nueva tienda
+    </a>
+</div>
+
+{% if tiendas %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for tienda in tiendas %}
+    <div class="bg-br-card border border-br-border p-5 flex flex-col gap-4">
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-br-text">{{ tienda.nombre }}</h3>
+                <p class="text-xs text-br-text opacity-40 mt-0.5">{{ APP_URL }}/{{ tienda.slug }}/</p>
+            </div>
+            <span class="text-xs px-2 py-0.5 border
+                         {% if tienda.activa %}border-green-700/40 text-green-400 bg-green-900/20{% else %}border-br-border text-br-text opacity-40{% endif %}">
+                {% if tienda.activa %}Activa{% else %}Inactiva{% endif %}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-br-bg p-2">
+                <p class="text-base font-bold text-br-text">{{ tienda.modelos.count }}</p>
+                <p class="text-xs text-br-text opacity-40 mt-0.5">Modelos</p>
+            </div>
+            <div class="bg-br-bg p-2">
+                <p class="text-base font-bold text-br-text">{{ tienda.motos.count }}</p>
+                <p class="text-xs text-br-text opacity-40 mt-0.5">Unidades</p>
+            </div>
+            <div class="bg-br-bg p-2">
+                <p class="text-base font-bold text-br-text">{{ tienda.ordenes.count }}</p>
+                <p class="text-xs text-br-text opacity-40 mt-0.5">Órdenes</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2 mt-auto">
+            <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+               class="flex-1 text-center py-2 text-xs font-semibold bg-br-accent text-[#080806] hover:bg-br-accent-hover transition-colors">
+                Gestionar
+            </a>
+            <a href="{% url 'owner_shop_settings' slug=tienda.slug %}"
+               class="px-3 py-2 text-xs text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border p-12 text-center">
+    <svg class="w-10 h-10 mx-auto text-br-text opacity-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+    </svg>
+    <p class="text-sm text-br-text opacity-40 mb-4">Aún no tienes tiendas.</p>
+    <a href="{% url 'owner_shop_create' %}"
+       class="inline-block px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+        Crear mi primera tienda
+    </a>
+</div>
+{% endif %}
+{% endblock %}

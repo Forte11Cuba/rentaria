@@ -1,0 +1,121 @@
+{% load i18n %}
+<div class="p-4">
+
+  <!-- Encabezado del día -->
+  <div class="mb-4 pb-3 border-b border-br-border">
+    <p class="text-xs text-br-text opacity-40 uppercase tracking-widest mb-0.5">
+      {{ dia|date:"l" }}
+    </p>
+    <h2 class="font-bold text-br-text text-base">
+      {{ dia|date:"j \d\e F, Y" }}
+    </h2>
+    {% if not entregas and not devoluciones and not con_clientes %}
+    <p class="text-xs text-br-text opacity-25 mt-1">Sin actividad</p>
+    {% endif %}
+  </div>
+
+  <!-- Entregas -->
+  {% if entregas %}
+  <div class="mb-5">
+    <h3 class="text-xs font-title uppercase tracking-widest text-green-400 mb-2 flex items-center gap-1.5">
+      <span>↓</span> Entregas
+      <span class="text-green-400 opacity-50">({{ entregas|length }})</span>
+    </h3>
+    <div class="space-y-2">
+      {% for item in entregas %}
+      <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=item.orden.id %}"
+         class="block bg-br-bg border border-br-border hover:border-green-400/40 p-3 transition-colors group">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-green-400 font-mono text-xs font-bold">
+            {% if item.orden.hora_inicio %}{{ item.orden.hora_inicio|time:"H:i" }}{% else %}—{% endif %}
+          </span>
+          <span class="text-br-text opacity-25 text-xs font-mono">{{ item.orden.id }}</span>
+        </div>
+        <p class="text-sm text-br-text font-medium truncate group-hover:text-white transition-colors">{{ item.cliente }}</p>
+        {% for linea in item.orden.lineas.all %}
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-xs text-br-text opacity-50">{{ linea.modelo.marca }} {{ linea.modelo.modelo }}</span>
+          <span class="text-xs font-mono text-br-accent opacity-60">{{ linea.moto.chapa }}</span>
+        </div>
+        {% endfor %}
+        <p class="text-xs text-br-text opacity-25 mt-1.5">
+          Hasta {{ item.orden.fecha_fin }} · {{ item.orden.dias }} día{{ item.orden.dias|pluralize }}
+        </p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Devoluciones -->
+  {% if devoluciones %}
+  <div class="mb-5">
+    <h3 class="text-xs font-title uppercase tracking-widest text-red-400 mb-2 flex items-center gap-1.5">
+      <span>↑</span> Devoluciones
+      <span class="text-red-400 opacity-50">({{ devoluciones|length }})</span>
+    </h3>
+    <div class="space-y-2">
+      {% for item in devoluciones %}
+      <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=item.orden.id %}"
+         class="block bg-br-bg border border-br-border hover:border-red-400/40 p-3 transition-colors group">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-red-400 font-mono text-xs font-bold">
+            {% if item.orden.hora_fin %}{{ item.orden.hora_fin|time:"H:i" }}{% else %}—{% endif %}
+          </span>
+          <span class="text-br-text opacity-25 text-xs font-mono">{{ item.orden.id }}</span>
+        </div>
+        <p class="text-sm text-br-text font-medium truncate group-hover:text-white transition-colors">{{ item.cliente }}</p>
+        {% for linea in item.orden.lineas.all %}
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-xs text-br-text opacity-50">{{ linea.modelo.marca }} {{ linea.modelo.modelo }}</span>
+          <span class="text-xs font-mono text-br-accent opacity-60">{{ linea.moto.chapa }}</span>
+        </div>
+        {% endfor %}
+        <p class="text-xs text-br-text opacity-25 mt-1.5">
+          Desde {{ item.orden.fecha_inicio }} · {{ item.orden.dias }} día{{ item.orden.dias|pluralize }}
+        </p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Con clientes -->
+  {% if con_clientes %}
+  <div class="mb-4">
+    <h3 class="text-xs font-title uppercase tracking-widest text-br-accent mb-2 flex items-center gap-1.5">
+      <span class="inline-block w-1.5 h-1.5 bg-br-accent rounded-full animate-pulse"></span>
+      Con clientes
+      <span class="text-br-accent opacity-50">({{ con_clientes|length }})</span>
+    </h3>
+    <div class="space-y-2">
+      {% for item in con_clientes %}
+      <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=item.orden.id %}"
+         class="block bg-br-bg border border-br-border hover:border-br-accent/40 p-3 transition-colors group">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-br-accent text-xs">
+            {% if item.dias_restantes == 0 %}Hoy retorna
+            {% elif item.dias_restantes == 1 %}Retorna mañana
+            {% else %}{{ item.dias_restantes }} días restantes
+            {% endif %}
+          </span>
+          <span class="text-br-text opacity-25 text-xs font-mono">{{ item.orden.id }}</span>
+        </div>
+        <p class="text-sm text-br-text font-medium truncate group-hover:text-white transition-colors">{{ item.cliente }}</p>
+        {% for linea in item.orden.lineas.all %}
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-xs text-br-text opacity-50">{{ linea.modelo.marca }} {{ linea.modelo.modelo }}</span>
+          <span class="text-xs font-mono text-br-accent opacity-60">{{ linea.moto.chapa }}</span>
+        </div>
+        {% endfor %}
+        <p class="text-xs text-br-text opacity-25 mt-1.5">
+          Retorna {{ item.orden.fecha_fin }}
+          {% if item.orden.hora_fin %} · {{ item.orden.hora_fin|time:"H:i" }}{% endif %}
+        </p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>

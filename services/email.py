@@ -1,0 +1,194 @@
+import logging
+import os
+
+import resend
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _send(params: dict) -> bool:
+    api_key = os.environ.get('RESEND_API_KEY', '')
+    if not api_key:
+        logger.info(
+            '[EMAIL — sin API key, no enviado]\n  To: %s\n  Subject: %s',
+            params.get('to'), params.get('subject'),
+        )
+        return False
+    resend.api_key = api_key
+    try:
+        resend.Emails.send(params)
+        return True
+    except Exception:
+        logger.exception('Error enviando email a %s', params.get('to'))
+        return False
+
+
+def _from_platform() -> str:
+    return f'{settings.BRAND_NAME} <no-reply@{settings.BASE_DOMAIN}>'
+
+
+def _from_tienda(tienda_nombre: str) -> str:
+    return f'{tienda_nombre} <no-reply@{settings.BASE_DOMAIN}>'
+
+
+def _generar_ics(orden) -> bytes:
+    from datetime import datetime
+    from icalendar import Calendar, Event
+    cal = Calendar()
+    cal.add('prodid', f'-//{settings.BRAND_NAME}//{settings.BASE_DOMAIN}//')
+    cal.add('version', '2.0')
+    event = Event()
+    event.add('summary', f'Renta de moto — {orden.tienda.nombre}')
+    if orden.hora_inicio and orden.hora_fin:
+        event.add('dtstart', datetime.combine(orden.fecha_inicio, orden.hora_inicio))
+        event.add('dtend', datetime.combine(orden.fecha_fin, orden.hora_fin))
+    else:
+        event.add('dtstart', orden.fecha_inicio)
+        event.add('dtend', orden.fecha_fin)
+    event.add('description', f'Orden #{orden.id}\nTotal: ${orden.monto_total_usd} USD')
+    event.add('uid', f'{orden.id}@{settings.BASE_DOMAIN}')
+    cal.add_component(event)
+    return cal.to_ical()
+
+
+def _tabla_orden(orden) -> str:
+    motos = ', '.join(
+        f"{l.modelo.marca} {l.modelo.modelo}"
+        for l in orden.lineas.select_related('modelo').all()
+    )
+    cargos_rows = ''
+    for l in orden.lineas.prefetch_related('modelo__cargos').select_related('modelo').all():
+        for cargo in l.modelo.cargos.all():
+            cargos_rows += (
+                f'<tr><td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">{cargo.nombre}</td>'
+                f'<td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">${cargo.costo}</td></tr>'
+            )
+    return f'''
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Orden</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right;font-family:monospace">{orden.id}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Motos</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">{motos}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Desde</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">{orden.fecha_inicio}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Hasta</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">{orden.fecha_fin}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Hora entrega</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">{orden.hora_inicio.strftime('%H:%M') if orden.hora_inicio else '—'}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Hora devolución</td>
+        <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right">{orden.hora_fin.strftime('%H:%M') if orden.hora_fin else '—'}</td>
+      </tr>
+      {cargos_rows}
+      <tr>
+        <td style="padding:8px 0;color:#6b7280">Total</td>
+        <td style="padding:8px 0;color:#f7931a;font-weight:bold;text-align:right;font-family:monospace">${orden.monto_total_usd} USD</td>
+      </tr>
+    </table>'''
+
+
+def _base_html(tienda_nombre, titulo, cuerpo) -> str:
+    return f'''
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#c9cdd4;background:#1a1b1e;padding:32px">
+      <h1 style="color:#f7931a;font-size:18px;margin-bottom:4px;text-transform:uppercase;letter-spacing:4px">{settings.BRAND_NAME.upper()}</h1>
+      <p style="color:#6b7280;font-size:12px;margin-top:0;margin-bottom:28px">{tienda_nombre}</p>
+      <h2 style="color:#e5e5e5;font-size:17px;margin-bottom:20px">{titulo}</h2>
+      {cuerpo}
+    </div>'''
+
+
+# ── Emails de plataforma ───────────────────────────────────────────────────────
+
+def enviar_cuenta_aprobada(usuario) -> bool:
+    return _send({
+        'from': _from_platform(),
+        'to': [usuario.email],
+        'subject': f'Tu cuenta ha sido aprobada — {settings.BRAND_NAME}',
+        'html': _base_html(settings.BRAND_NAME, 'Cuenta aprobada', f'''
+            <p style="margin-bottom:16px">Hola <strong>{usuario.username}</strong>,</p>
+            <p style="margin-bottom:24px">Tu cuenta ha sido aprobada. Ya puedes iniciar sesión y comenzar a configurar tu tienda.</p>
+            <a href="{settings.APP_URL}/auth/login/"
+               style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
+              Iniciar sesión →
+            </a>'''),
+    })
+
+
+def enviar_cuenta_rechazada(usuario) -> bool:
+    return _send({
+        'from': _from_platform(),
+        'to': [usuario.email],
+        'subject': f'Actualización sobre tu cuenta — {settings.BRAND_NAME}',
+        'html': _base_html(settings.BRAND_NAME, 'Solicitud no aprobada', f'''
+            <p style="margin-bottom:16px">Hola <strong>{usuario.username}</strong>,</p>
+            <p style="margin-bottom:16px">Lamentamos informarte que tu solicitud de cuenta no ha podido ser aprobada en esta ocasión.</p>
+            <p style="color:#6b7280;font-size:12px">Si crees que es un error, responde a este correo.</p>'''),
+    })
+
+
+# ── Emails de reservas ─────────────────────────────────────────────────────────
+
+def enviar_confirmacion_cliente(orden) -> bool:
+    email_resp = orden.respuestas.filter(campo__es_email_cliente=True).first()
+    if not email_resp:
+        return False
+
+    ics_data = _generar_ics(orden)
+    tabla = _tabla_orden(orden)
+
+    return _send({
+        'from': _from_tienda(orden.tienda.nombre),
+        'to': [email_resp.valor],
+        'subject': f'Reserva confirmada #{orden.id} — {orden.tienda.nombre}',
+        'html': _base_html(orden.tienda.nombre, '¡Reserva confirmada!', f'''
+            {tabla}
+            <p style="color:#6b7280;font-size:12px;margin-top:8px">
+              El archivo .ics adjunto te permite agregar la reserva a tu calendario.
+            </p>'''),
+        'attachments': [{'filename': 'reserva.ics', 'content': list(ics_data)}],
+    })
+
+
+def enviar_nueva_orden_dueno(orden) -> bool:
+    metodo = 'Bitcoin (BTCPay)' if orden.metodo_pago == 'bitcoin_btcpay' else 'Efectivo'
+    tabla = _tabla_orden(orden)
+
+    return _send({
+        'from': _from_platform(),
+        'to': [orden.tienda.dueno.email],
+        'subject': f'Nueva orden #{orden.id} — {orden.tienda.nombre}',
+        'html': _base_html(orden.tienda.nombre, 'Nueva orden recibida', f'''
+            {tabla}
+            <p style="color:#6b7280;font-size:12px;margin-bottom:20px">Método de pago: {metodo}</p>
+            <a href="{settings.APP_URL}/dashboard/"
+               style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
+              Ver orden →
+            </a>'''),
+    })
+
+
+def enviar_orden_confirmada_dueno(orden) -> bool:
+    tabla = _tabla_orden(orden)
+
+    return _send({
+        'from': _from_platform(),
+        'to': [orden.tienda.dueno.email],
+        'subject': f'Orden confirmada #{orden.id} — {orden.tienda.nombre}',
+        'html': _base_html(orden.tienda.nombre, 'Orden confirmada', f'''
+            {tabla}
+            <a href="{settings.APP_URL}/dashboard/"
+               style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
+              Ver orden →
+            </a>'''),
+    })

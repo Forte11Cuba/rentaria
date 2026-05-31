@@ -1,0 +1,13 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{{ seccion }} — Rentaria{% endblock %}
+{% block page_title %}{{ seccion }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center h-64">
+    <div class="text-center">
+        <p class="text-br-text opacity-40 text-sm">{{ seccion }}</p>
+        <p class="text-br-text opacity-20 text-xs mt-1">Próximamente disponible</p>
+    </div>
+</div>
+{% endblock %}

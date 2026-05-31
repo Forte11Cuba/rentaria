@@ -1,0 +1,126 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}{{ cuenta.nombre }} — {{ tienda.nombre }} — Rentaria{% endblock %}
+{% block page_title %}{{ cuenta.nombre }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb + acciones -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2">
+        <a href="{% url 'owner_accounts' slug=tienda.slug %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">Cuentas</a>
+        <span class="text-br-border">/</span>
+        <span class="text-xs text-br-text">{{ cuenta.nombre }}</span>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'owner_account_edit' slug=tienda.slug pk=cuenta.pk %}"
+           class="px-3 py-1.5 text-xs border border-br-border text-br-text hover:border-br-accent hover:text-br-accent transition-colors">
+            Editar cuenta
+        </a>
+        <a href="{% url 'owner_operation_new' slug=tienda.slug pk=cuenta.pk %}"
+           class="flex items-center gap-1.5 px-3 py-1.5 bg-br-accent text-xs font-semibold text-[#080806] hover:bg-br-accent-hover transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nueva operación
+        </a>
+    </div>
+</div>
+
+<!-- Saldo -->
+{% with saldo=cuenta.saldo %}
+<div class="bg-br-card border border-br-border p-6 mb-6">
+    <p class="text-xs text-br-text opacity-40 mb-1">Saldo actual</p>
+    <div class="flex items-baseline gap-2">
+        <span class="text-4xl font-bold font-mono
+                     {% if saldo >= 0 %}text-br-text{% else %}text-red-400{% endif %}">
+            {% if saldo >= 0 %}+{% endif %}{{ saldo|floatformat:2 }}
+        </span>
+        <span class="text-lg text-br-text opacity-50 font-mono">{{ cuenta.moneda }}</span>
+    </div>
+</div>
+{% endwith %}
+
+<!-- Movimientos -->
+<h3 class="text-sm font-semibold text-br-text opacity-60 mb-3 uppercase tracking-wider text-xs">Movimientos</h3>
+
+{% if operaciones %}
+<div class="bg-br-card border border-br-border divide-y divide-br-border">
+    {% for op in operaciones %}
+    <div class="flex items-center gap-4 px-4 py-3 group">
+        <!-- Tipo icono -->
+        <div class="shrink-0 w-8 h-8 flex items-center justify-center
+                    {% if op.monto >= 0 %}bg-green-900/20 text-green-400{% else %}bg-red-900/20 text-red-400{% endif %}">
+            {% if op.tipo == 'transferencia' %}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            {% elif op.monto >= 0 %}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+            {% else %}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+            {% endif %}
+        </div>
+
+        <!-- Descripción -->
+        <div class="flex-1 min-w-0">
+            <p class="text-sm text-br-text">
+                {{ op.descripcion|default:"Sin descripción" }}
+                {% if op.tipo == 'transferencia' and op.cuenta_contraparte %}
+                <span class="text-xs text-br-text opacity-40 ml-1">
+                    {% if op.monto >= 0 %}← de{% else %}→ a{% endif %}
+                    {{ op.cuenta_contraparte.nombre }}
+                </span>
+                {% endif %}
+            </p>
+            <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-xs text-br-text opacity-40">{{ op.fecha }}</span>
+                <span class="text-xs px-1.5 py-0.5 border border-br-border text-br-text opacity-40">
+                    {{ op.get_tipo_display }}
+                </span>
+                {% if op.tipo == 'transferencia' and op.tasa_cambio and op.tasa_cambio != 1 %}
+                <span class="text-xs text-br-text opacity-30 font-mono">
+                    tasa {{ op.tasa_cambio|floatformat:"-6" }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Monto -->
+        <div class="text-right shrink-0">
+            <span class="text-base font-bold font-mono
+                         {% if op.monto >= 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                {% if op.monto >= 0 %}+{% endif %}{{ op.monto|floatformat:2 }}
+            </span>
+            <span class="text-xs text-br-text opacity-40 ml-0.5">{{ cuenta.moneda }}</span>
+        </div>
+
+        <!-- Eliminar -->
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <form method="post" action="{% url 'owner_operation_delete' slug=tienda.slug op_pk=op.pk %}"
+                  onsubmit="return confirm('¿Eliminar esta operación?{% if op.tipo == "transferencia" %} Se eliminará también la otra pata de la transferencia.{% endif %}')">
+                {% csrf_token %}
+                <button type="submit" class="w-7 h-7 flex items-center justify-center border border-br-border text-br-text opacity-50 hover:opacity-100 hover:border-red-700/50 hover:text-red-400 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border p-10 text-center">
+    <p class="text-sm text-br-text opacity-40 mb-4">No hay movimientos registrados.</p>
+    <a href="{% url 'owner_operation_new' slug=tienda.slug pk=cuenta.pk %}"
+       class="inline-block px-5 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+        Registrar primera operación
+    </a>
+</div>
+{% endif %}
+{% endblock %}

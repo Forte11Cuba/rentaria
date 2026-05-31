@@ -1,0 +1,148 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Configuración — {{ tienda.nombre }} — Rentaria{% endblock %}
+
+{% block page_title %}Configuración{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <h2 class="text-base font-semibold text-br-text mb-6">Configuración de la tienda</h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Datos básicos -->
+        <div class="bg-br-card border border-br-border p-4">
+            <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">Datos básicos</h3>
+            <div class="space-y-4">
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                        Nombre de la tienda <span class="text-br-accent">*</span>
+                    </label>
+                    <input type="text" name="nombre" value="{{ form.nombre.value|default:'' }}" required
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                    {% for error in form.nombre.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                        Slug (URL única) <span class="text-br-accent">*</span>
+                    </label>
+                    <div class="flex items-center border border-br-border focus-within:border-br-accent">
+                        <span class="px-3 py-2 text-xs text-br-text opacity-40 bg-br-bg border-r border-br-border shrink-0">
+                            {{ request.get_host }}/
+                        </span>
+                        <input type="text" name="slug" value="{{ form.slug.value|default:'' }}" required
+                               class="flex-1 bg-br-bg text-br-text text-sm px-3 py-2 focus:outline-none">
+                    </div>
+                    {% for error in form.slug.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Logo -->
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Logo de la tienda</label>
+                    {% if tienda.logo %}
+                    <div class="mb-2 flex items-center gap-3">
+                        <img src="{{ tienda.logo.url }}" alt="Logo actual" class="h-12 object-contain border border-br-border bg-br-bg px-2">
+                        <p class="text-xs text-br-text opacity-40">Logo actual. Sube uno nuevo para reemplazarlo.</p>
+                    </div>
+                    {% endif %}
+                    <input type="file" name="logo" accept="image/*"
+                           class="w-full text-xs text-br-text opacity-70
+                                  file:mr-3 file:px-3 file:py-1.5 file:border file:border-br-border file:bg-br-bg file:text-br-text file:text-xs file:cursor-pointer
+                                  hover:file:border-br-accent hover:file:text-br-accent">
+                    <p class="text-xs text-br-text opacity-30 mt-1">PNG, JPG o SVG recomendado. Fondo transparente ideal.</p>
+                </div>
+
+                <!-- WhatsApp -->
+                <div class="border border-br-border p-3 space-y-3">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="whatsapp_activo" id="id_whatsapp_activo"
+                               {% if form.whatsapp_activo.value %}checked{% endif %}
+                               class="accent-br-accent">
+                        <label for="id_whatsapp_activo" class="text-xs font-medium text-br-text opacity-70">Activar botón de WhatsApp</label>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-br-text opacity-50 mb-1">Número (con código de país, sin +)</label>
+                        <input type="text" name="whatsapp_numero" value="{{ form.whatsapp_numero.value|default:'' }}"
+                               class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                               placeholder="50312345678">
+                        <p class="text-xs text-br-text opacity-30 mt-1">Ej: 50312345678</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BTCPay -->
+        <div class="bg-br-card border border-br-border p-4">
+            <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">BTCPay Server — Pago Bitcoin</h3>
+            <div class="space-y-4">
+
+                <!-- Toggle activo -->
+                <div class="border border-br-border p-3">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="btcpay_activo" id="id_btcpay_activo"
+                               {% if form.btcpay_activo.value %}checked{% endif %}
+                               class="accent-br-accent">
+                        <label for="id_btcpay_activo" class="text-xs font-medium text-br-text opacity-70">
+                            Activar pago Bitcoin en el flujo de reserva
+                        </label>
+                    </div>
+                    <p class="text-xs text-br-text opacity-30 mt-1.5">
+                        Solo visible al cliente si está activo y los campos de conexión están completos.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">BTCPay URL</label>
+                    <input type="url" name="btcpay_url" value="{{ form.btcpay_url.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="https://btcpay.mi-servidor.com">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Store ID</label>
+                    <input type="text" name="btcpay_store_id" value="{{ form.btcpay_store_id.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="AbCdEfGhIjKlMnOpQrStUvWxYz12345">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">API Key</label>
+                    <input type="password" name="btcpay_api_key" value="{{ form.btcpay_api_key.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="••••••••••••••••">
+                    <p class="text-xs text-br-text opacity-30 mt-1">Permiso requerido: <code class="opacity-60">btcpay.store.cancreateinvoice</code></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Webhook Secret <span class="opacity-40">(opcional)</span></label>
+                    <input type="password" name="btcpay_webhook_secret" value="{{ form.btcpay_webhook_secret.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="••••••••••••••••">
+                    <p class="text-xs text-br-text opacity-30 mt-1">
+                        En BTCPay → Store Settings → Webhooks → añade <code class="opacity-50">{{ APP_URL }}/payment/webhook/btcpay/</code>
+                        y pega aquí el secret generado. Evento: <code class="opacity-50">InvoiceSettled</code>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit"
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+                Guardar cambios
+            </button>
+            <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+               class="px-6 py-2 text-sm text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

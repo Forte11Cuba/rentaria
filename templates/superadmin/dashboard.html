@@ -1,0 +1,44 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}Dashboard — Superadmin{% endblock %}
+{% block page_title %}Dashboard global{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+    <div class="bg-br-card border border-br-border p-5">
+        <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-2">Pendientes</p>
+        <p class="text-2xl font-semibold text-br-accent">{{ total_pendientes }}</p>
+        <a href="{% url 'superadmin_users' %}" class="text-xs text-br-text opacity-40 hover:opacity-70 mt-1 block">
+            Ver usuarios →
+        </a>
+    </div>
+    <div class="bg-br-card border border-br-border p-5">
+        <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-2">Dueños activos</p>
+        <p class="text-2xl font-semibold text-br-text">{{ total_activos }}</p>
+    </div>
+    <div class="bg-br-card border border-br-border p-5">
+        <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-2">Tiendas</p>
+        <p class="text-2xl font-semibold text-br-text">{{ total_tiendas }}</p>
+        <a href="{% url 'superadmin_shops' %}" class="text-xs text-br-text opacity-40 hover:opacity-70 mt-1 block">
+            Ver tiendas →
+        </a>
+    </div>
+    <div class="bg-br-card border border-br-border p-5">
+        <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-2">Órdenes totales</p>
+        <p class="text-2xl font-semibold text-br-text">{{ total_ordenes }}</p>
+        <span class="text-xs text-green-500 opacity-70">{{ ordenes_confirmadas }} confirmadas</span>
+    </div>
+</div>
+
+{% if total_pendientes > 0 %}
+<div class="bg-br-accent/10 border border-br-accent/30 px-4 py-3 flex items-center justify-between">
+    <p class="text-sm text-br-accent">
+        {{ total_pendientes }} cuenta{{ total_pendientes|pluralize }} pendiente{{ total_pendientes|pluralize }} de aprobación
+    </p>
+    <a href="{% url 'superadmin_users' %}"
+       class="text-xs bg-br-accent text-[#080806] font-semibold px-3 py-1.5 hover:bg-br-accent-hover transition-colors">
+        Revisar
+    </a>
+</div>
+{% endif %}
+{% endblock %}

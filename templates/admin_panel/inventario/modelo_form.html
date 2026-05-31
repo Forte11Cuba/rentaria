@@ -1,0 +1,256 @@
+{% extends "admin_panel/base_dueno.html" %}
+{% load l10n %}
+
+{% block title %}{{ accion }} — {{ tienda.nombre }} — Rentaria{% endblock %}
+
+{% block page_title %}{{ accion }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="flex items-center gap-2 mb-6">
+        <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">
+            Inventario
+        </a>
+        <span class="text-br-border">/</span>
+        <span class="text-xs text-br-text">{{ accion }}</span>
+    </div>
+
+    {% if modelo %}
+    <div class="mb-4 p-3 bg-br-bg border border-br-border text-xs text-br-text opacity-60">
+        Editando: {{ modelo.marca }} {{ modelo.modelo }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="mb-4 p-3 bg-red-900/20 border border-red-500/40 text-xs text-red-400 space-y-1">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        {% for field in form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Marca y Modelo -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                    Marca <span class="text-br-accent">*</span>
+                </label>
+                <input type="text" name="marca" value="{{ form.marca.value|default:'' }}" required
+                       class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                       placeholder="Honda">
+                {% for error in form.marca.errors %}<p class="text-xs text-red-400 mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                    Modelo <span class="text-br-accent">*</span>
+                </label>
+                <input type="text" name="modelo" value="{{ form.modelo.value|default:'' }}" required
+                       class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                       placeholder="CB500F">
+                {% for error in form.modelo.errors %}<p class="text-xs text-red-400 mt-1">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <!-- Descripción -->
+        <div>
+            <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Descripción</label>
+            <textarea name="descripcion" rows="2"
+                      class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent resize-none"
+                      placeholder="Descripción opcional...">{{ form.descripcion.value|default:'' }}</textarea>
+        </div>
+
+        <!-- Mínimo de días -->
+        <div>
+            <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                Mínimo de días de alquiler <span class="text-br-accent">*</span>
+            </label>
+            <input type="number" name="min_dias_alquiler"
+                   value="{{ form.min_dias_alquiler.value|default:'1' }}"
+                   min="1" required
+                   class="w-32 bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+            <p class="text-xs text-br-text opacity-30 mt-1">El cliente no podrá reservar esta moto por menos días.</p>
+            {% for error in form.min_dias_alquiler.errors %}<p class="text-xs text-red-400 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+
+        <!-- Planes de precio -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <label class="text-xs font-medium text-br-text opacity-70 uppercase tracking-widest">Planes de precio</label>
+                <button type="button" onclick="addPlan()"
+                        class="text-xs px-3 py-1 border border-br-border text-br-accent hover:border-br-accent transition-colors">
+                    + Agregar plan
+                </button>
+            </div>
+
+            <!-- Header -->
+            <div class="hidden md:grid grid-cols-[1fr_1fr_auto] gap-2 mb-1 px-3">
+                <span class="text-xs text-br-text opacity-40">Hasta (días) — vacío = sin límite</span>
+                <span class="text-xs text-br-text opacity-40">Precio/día (USD)</span>
+                <span></span>
+            </div>
+
+            <div id="planes-container" class="space-y-2">
+                {% for plan in planes %}
+                <div class="plan-row grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                    <input type="number" name="plan_dias_max"
+                           value="{{ plan.dias_max|default:'' }}"
+                           min="1" placeholder="sin límite"
+                           class="bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                    <input type="number" name="plan_precio"
+                           value="{{ plan.precio_dia|unlocalize }}"
+                           step="0.01" min="0" placeholder="0.00"
+                           class="bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                    <button type="button" onclick="this.closest('.plan-row').remove()"
+                            class="w-7 h-7 flex items-center justify-center border border-br-border text-br-text opacity-40 hover:opacity-100 hover:border-red-500/50 hover:text-red-400 transition-colors">
+                        ×
+                    </button>
+                </div>
+                {% empty %}
+                <p class="text-xs text-br-text opacity-30">Sin planes. Agrega al menos uno.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Cargos adicionales -->
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-medium text-br-text opacity-70 uppercase tracking-widest">Cargos adicionales por moto</label>
+                <button type="button" onclick="addCargo()"
+                        class="text-xs px-3 py-1 border border-br-border text-br-accent hover:border-br-accent transition-colors">
+                    + Agregar cargo
+                </button>
+            </div>
+            <p class="text-xs text-br-text opacity-30 mb-3">Cobros obligatorios por moto (seguro, entrega, depósito…). El cliente verá el nombre y la descripción al pagar.</p>
+
+            <div id="cargos-container" class="space-y-3">
+                {% for cargo in cargos %}
+                <div class="cargo-row border border-br-border p-3 space-y-2">
+                    <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                        <input type="text" name="cargo_nombre"
+                               value="{{ cargo.nombre }}"
+                               placeholder="Nombre del cargo (ej: Seguro, Entrega)"
+                               class="bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                        <input type="number" name="cargo_costo"
+                               value="{{ cargo.costo|unlocalize }}"
+                               step="0.01" min="0" placeholder="0.00"
+                               class="w-28 bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                        <button type="button" onclick="this.closest('.cargo-row').remove()"
+                                class="w-7 h-7 flex items-center justify-center border border-br-border text-br-text opacity-40 hover:opacity-100 hover:border-red-500/50 hover:text-red-400 transition-colors">×</button>
+                    </div>
+                    <textarea name="cargo_descripcion" rows="1"
+                              class="w-full bg-br-bg border border-br-border text-br-text text-xs px-3 py-2 focus:outline-none focus:border-br-accent resize-none opacity-60 focus:opacity-100"
+                              placeholder="Descripción opcional (visible al cliente al pagar)">{{ cargo.descripcion }}</textarea>
+                </div>
+                {% empty %}
+                <p id="cargos-empty" class="text-xs text-br-text opacity-30">Sin cargos. Agrega los que necesites.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Activo -->
+        <div class="flex items-center gap-2">
+            <input type="checkbox" name="activo" id="id_activo"
+                   {% if form.activo.value %}checked{% endif %}
+                   class="accent-br-accent">
+            <label for="id_activo" class="text-xs text-br-text opacity-70">Modelo activo (visible para clientes)</label>
+        </div>
+
+        <div class="pt-2 flex gap-3">
+            <button type="submit"
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+                Guardar
+            </button>
+            <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+               class="px-6 py-2 text-sm text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+<!-- Fotos — fuera del form principal para evitar anidamiento -->
+{% if modelo %}
+<div class="max-w-2xl mt-8 border-t border-br-border pt-6">
+    <label class="block text-xs font-medium text-br-text opacity-70 uppercase tracking-widest mb-1">Fotos</label>
+    <p class="text-xs text-br-text opacity-30 mb-4">La primera foto es la portada. Usá ← → para cambiar el orden.</p>
+
+    {% if modelo.fotos.all %}
+    <div class="grid grid-cols-3 gap-3 mb-4">
+        {% for foto in modelo.fotos.all %}
+        <div class="border border-br-border overflow-hidden {% if forloop.first %}border-br-accent/50{% endif %}">
+            <img src="{{ foto.imagen.url }}" class="w-full h-28 object-cover">
+            <div class="flex items-center border-t border-br-border">
+                {% if not forloop.first %}
+                <form method="post" action="{% url 'owner_photo_reorder' slug=tienda.slug pk=modelo.pk foto_pk=foto.pk %}" class="flex-1">
+                    {% csrf_token %}<input type="hidden" name="direccion" value="arriba">
+                    <button type="submit" class="w-full py-1.5 text-br-text/50 hover:text-br-accent hover:bg-br-bg text-xs transition-colors">←</button>
+                </form>
+                {% else %}<div class="flex-1"></div>{% endif %}
+                <form method="post" action="{% url 'owner_photo_delete' slug=tienda.slug pk=modelo.pk foto_pk=foto.pk %}" onsubmit="return confirm('¿Eliminar?')">
+                    {% csrf_token %}
+                    <button type="submit" class="px-3 py-1.5 text-red-500/50 hover:text-red-400 hover:bg-red-900/20 text-xs transition-colors">×</button>
+                </form>
+                {% if not forloop.last %}
+                <form method="post" action="{% url 'owner_photo_reorder' slug=tienda.slug pk=modelo.pk foto_pk=foto.pk %}" class="flex-1">
+                    {% csrf_token %}<input type="hidden" name="direccion" value="abajo">
+                    <button type="submit" class="w-full py-1.5 text-br-text/50 hover:text-br-accent hover:bg-br-bg text-xs transition-colors">→</button>
+                </form>
+                {% else %}<div class="flex-1"></div>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'owner_photo_upload' slug=tienda.slug pk=modelo.pk %}" class="flex items-center gap-3">
+        {% csrf_token %}
+        <input type="file" name="fotos" accept="image/*" multiple
+               class="flex-1 text-xs text-br-text opacity-70 file:mr-3 file:px-3 file:py-1.5 file:border file:border-br-border file:bg-br-bg file:text-br-text file:text-xs file:cursor-pointer hover:file:border-br-accent hover:file:text-br-accent">
+        <button type="submit" class="px-3 py-1.5 text-xs border border-br-border text-br-accent hover:border-br-accent whitespace-nowrap transition-colors">
+            Subir
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<script>
+const INPUT_CLS = 'bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent';
+const BTN_CLS   = 'w-7 h-7 flex items-center justify-center border border-br-border text-br-text opacity-40 hover:opacity-100 hover:border-red-500/50 hover:text-red-400 transition-colors';
+
+function addPlan() {
+    const row = document.createElement('div');
+    row.className = 'plan-row grid grid-cols-[1fr_1fr_auto] gap-2 items-center';
+    row.innerHTML = `
+        <input type="number" name="plan_dias_max" min="1" placeholder="sin límite" class="${INPUT_CLS}">
+        <input type="number" name="plan_precio"   min="0" step="0.01" placeholder="0.00" class="${INPUT_CLS}">
+        <button type="button" onclick="this.closest('.plan-row').remove()" class="${BTN_CLS}">×</button>
+    `;
+    const container = document.getElementById('planes-container');
+    // Remove empty-state text if present
+    const empty = container.querySelector('p');
+    if (empty) empty.remove();
+    container.appendChild(row);
+    row.querySelector('input').focus();
+}
+
+function addCargo() {
+    const empty = document.getElementById('cargos-empty');
+    if (empty) empty.remove();
+    const row = document.createElement('div');
+    row.className = 'cargo-row border border-br-border p-3 space-y-2';
+    row.innerHTML = `
+        <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+            <input type="text" name="cargo_nombre" placeholder="Nombre del cargo (ej: Seguro, Entrega)" class="${INPUT_CLS}">
+            <input type="number" name="cargo_costo" step="0.01" min="0" placeholder="0.00" class="w-28 ${INPUT_CLS}">
+            <button type="button" onclick="this.closest('.cargo-row').remove()" class="${BTN_CLS}">×</button>
+        </div>
+        <textarea name="cargo_descripcion" rows="1" placeholder="Descripción opcional (visible al cliente al pagar)"
+                  class="w-full bg-br-bg border border-br-border text-br-text text-xs px-3 py-2 focus:outline-none focus:border-br-accent resize-none opacity-60 focus:opacity-100"></textarea>
+    `;
+    document.getElementById('cargos-container').appendChild(row);
+    row.querySelector('input').focus();
+}
+</script>
+{% endblock %}

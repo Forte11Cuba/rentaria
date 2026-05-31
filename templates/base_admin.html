@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rentaria Admin{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+
+    <!-- Aplicar tema antes del render para evitar flash -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('rentaria-theme') || 'dark';
+                if (t === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
+
+    <style>
+        :root {
+            --br-bg:              #f4f4f5;
+            --br-sidebar:         #ffffff;
+            --br-card:            #ffffff;
+            --br-border:          #e4e4e7;
+            --br-border-strong:   #d4d4d8;
+            --br-input:           #fafafa;
+            --br-text:            #18181b;
+            --br-accent:          #f7931a;
+            --br-accent-hover:    #e8841a;
+        }
+        :root.dark {
+            --br-bg:              #1a1b1e;
+            --br-sidebar:         #141517;
+            --br-card:            #212226;
+            --br-border:          #2c2d32;
+            --br-border-strong:   #3d3e43;
+            --br-input:           #17181c;
+            --br-text:            #c9cdd4;
+            --br-accent:          #f7931a;
+            --br-accent-hover:    #e8841a;
+        }
+        .theme-toggle .sun { display: none; }
+        .theme-toggle .moon { display: block; }
+        :root.dark .theme-toggle .sun { display: block; }
+        :root.dark .theme-toggle .moon { display: none; }
+    </style>
+
+    <!-- Tailwind CSS via CDN Play -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'br-bg':              'var(--br-bg)',
+                        'br-sidebar':         'var(--br-sidebar)',
+                        'br-card':            'var(--br-card)',
+                        'br-border':          'var(--br-border)',
+                        'br-border-strong':   'var(--br-border-strong)',
+                        'br-input':           'var(--br-input)',
+                        'br-text':            'var(--br-text)',
+                        'br-accent':          'var(--br-accent)',
+                        'br-accent-hover':    'var(--br-accent-hover)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX via CDN -->
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    <!-- Alpine.js via CDN -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-br-bg text-br-text min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 min-h-screen bg-br-sidebar border-r border-br-border flex flex-col">
+        <div class="p-6 border-b border-br-border flex flex-col items-center">
+            <a href="/">
+                <img src="{% static 'img/logo.png' %}" alt="Rentaria" class="h-16 object-contain">
+            </a>
+            <p class="text-xs text-br-text opacity-50 mt-2">Panel Administrativo</p>
+        </div>
+        <nav class="flex-1 p-4">
+            {% block sidebar_nav %}{% endblock %}
+        </nav>
+        <div class="p-4 border-t border-br-border">
+            {% if user.is_authenticated %}
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-xs text-br-text opacity-60 truncate">{{ user.email }}</p>
+                <button type="button"
+                        onclick="(function(){var d=document.documentElement;var t=d.classList.toggle('dark')?'dark':'light';localStorage.setItem('rentaria-theme',t);})()"
+                        class="theme-toggle shrink-0 text-br-text opacity-60 hover:opacity-100 hover:text-br-accent transition-colors"
+                        title="Cambiar tema">
+                    <svg class="sun w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <svg class="moon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+            </div>
+            <a href="/auth/logout/" class="text-xs text-br-accent hover:underline mt-1 block">Cerrar sesión</a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col">
+        <header class="h-14 bg-br-sidebar border-b border-br-border flex items-center px-6">
+            {% block header %}
+            <h1 class="text-sm font-semibold text-br-text">{% block page_title %}Dashboard{% endblock %}</h1>
+            {% endblock %}
+        </header>
+
+        <main class="flex-1 p-6">
+            {% if messages %}
+            <div class="mb-4 space-y-2">
+                {% for message in messages %}
+                <div class="text-xs px-3 py-2.5 border {% if message.tags == 'error' %}bg-red-900/30 border-red-700/50 text-red-400{% else %}bg-green-900/20 border-green-700/30 text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

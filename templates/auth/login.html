@@ -1,0 +1,66 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Iniciar sesión — Rentaria{% endblock %}
+
+{% block card %}
+<h2 class="text-sm font-semibold text-[#c9cdd4] mb-6">Iniciar sesión</h2>
+
+{% if form.non_field_errors %}
+<div class="bg-red-900/30 border border-red-700/50 text-red-400 text-xs px-3 py-2.5 mb-5">
+    {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    <div class="mb-4">
+        <label class="block text-xs text-[#c9cdd4] opacity-60 mb-1.5">Usuario</label>
+        <input
+            type="text"
+            name="username"
+            value="{{ form.username.value|default:'' }}"
+            autocomplete="username"
+            class="w-full bg-[#17181c] border border-[#2c2d32] text-[#c9cdd4] text-sm px-3 py-2.5 focus:outline-none focus:border-[#f7931a] transition-colors"
+        >
+        {% if form.username.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div class="mb-6">
+        <label class="block text-xs text-[#c9cdd4] opacity-60 mb-1.5">Contraseña</label>
+        <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            class="w-full bg-[#17181c] border border-[#2c2d32] text-[#c9cdd4] text-sm px-3 py-2.5 focus:outline-none focus:border-[#f7931a] transition-colors"
+        >
+        {% if form.password.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <button
+        type="submit"
+        class="w-full bg-[#f7931a] text-[#1a1b1e] font-semibold text-sm py-2.5 hover:bg-[#e8841a] transition-colors"
+    >
+        Entrar
+    </button>
+</form>
+{% endblock %}
+
+{% block below_card %}
+<div class="mt-4 text-center space-y-2">
+    <a href="{% url 'password_reset' %}" class="block text-xs text-[#c9cdd4] opacity-50 hover:opacity-80 transition-opacity">
+        ¿Olvidaste tu contraseña?
+    </a>
+    <p class="text-xs text-[#c9cdd4] opacity-40">
+        ¿No tienes cuenta?
+        <a href="{% url 'register' %}" class="text-[#f7931a] opacity-100 hover:underline">Regístrate</a>
+    </p>
+</div>
+{% endblock %}

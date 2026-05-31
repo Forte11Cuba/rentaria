@@ -1,0 +1,15 @@
+{% extends "base_cliente.html" %}
+
+{% block title %}Pago expirado — {{ tienda.nombre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto pt-16 text-center">
+  <div class="w-16 h-16 bg-red-500/10 border border-red-500/30 flex items-center justify-center text-3xl mx-auto mb-6">✕</div>
+  <h1 class="font-title text-4xl font-bold uppercase tracking-wide mb-3 text-red-400">Pago expirado</h1>
+  <p class="text-white/40 mb-8">El tiempo para completar el pago de la orden <span class="price">{{ orden.id }}</span> ha vencido.</p>
+  <a href="{% url 'reservas:step1_dates' slug=tienda.slug %}"
+     class="inline-block bg-[#f7931a] text-[#080806] font-title font-bold uppercase tracking-widest px-8 py-4 hover:bg-[#e0841a] transition-colors">
+    Nueva reserva →
+  </a>
+</div>
+{% endblock %}

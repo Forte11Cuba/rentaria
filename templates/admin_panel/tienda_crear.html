@@ -1,0 +1,67 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Nueva tienda — Rentaria{% endblock %}
+
+{% block sidebar_nav %}
+<nav class="space-y-0.5">
+    <a href="{% url 'owner_my_shops' %}"
+       class="flex items-center gap-2.5 px-3 py-2 text-sm text-br-text opacity-60 hover:opacity-100 hover:bg-br-bg transition-colors">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Mis tiendas
+    </a>
+</nav>
+{% endblock %}
+
+{% block page_title %}Nueva tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <h2 class="text-base font-semibold text-br-text mb-6">Crear nueva tienda</h2>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div>
+            <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                {{ field.label }}{% if field.field.required %} <span class="text-br-accent">*</span>{% endif %}
+            </label>
+            {% if field.field.widget.input_type == 'checkbox' %}
+            <div class="flex items-center gap-2">
+                {{ field }}
+                <span class="text-xs text-br-text opacity-60">{{ field.help_text }}</span>
+            </div>
+            {% else %}
+            <input type="{{ field.field.widget.input_type }}"
+                   name="{{ field.html_name }}"
+                   id="{{ field.id_for_label }}"
+                   value="{{ field.value|default:'' }}"
+                   {% if field.field.required %}required{% endif %}
+                   class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent placeholder-br-text/20">
+            {% endif %}
+            {% if field.errors %}
+            {% for error in field.errors %}
+            <p class="text-xs text-red-400 mt-1">{{ error }}</p>
+            {% endfor %}
+            {% endif %}
+            {% if field.help_text %}
+            <p class="text-xs text-br-text opacity-40 mt-1">{{ field.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="pt-2 flex gap-3">
+            <button type="submit"
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+                Crear tienda
+            </button>
+            <a href="{% url 'owner_my_shops' %}"
+               class="px-6 py-2 text-sm text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

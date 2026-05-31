@@ -1,0 +1,71 @@
+{% extends "base_cliente.html" %}
+
+{% block title %}Tus datos — {{ tienda.nombre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto pt-8">
+
+  <!-- Step indicator -->
+  <div class="flex items-center gap-2 mb-10 text-xs font-title tracking-widest uppercase">
+    <span class="text-white/40">01 Fechas</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-white/40">02 Motos</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-[#f7931a] font-bold">03</span>
+    <span class="text-[#f7931a]">Datos</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-white/20">04 Pago</span>
+  </div>
+
+  <h1 class="font-title text-4xl font-bold uppercase tracking-wide mb-2">Tus datos</h1>
+  <p class="text-white/40 mb-8">{{ tienda.nombre }}</p>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    {% if campos_list %}
+      {% for item in campos_list %}
+      <div>
+        <label class="block text-xs font-title uppercase tracking-widest text-white/60 mb-2">
+          {{ item.campo.etiqueta }}{% if item.campo.requerido %} <span class="text-[#f7931a]">*</span>{% endif %}
+        </label>
+
+        {% if item.campo.tipo == 'email' %}
+          <input type="email"
+        {% elif item.campo.tipo == 'numero' %}
+          <input type="number"
+        {% elif item.campo.tipo == 'telefono' %}
+          <input type="tel"
+        {% else %}
+          <input type="text"
+        {% endif %}
+          name="{{ item.campo.variable }}"
+          value="{{ item.valor }}"
+          {% if item.campo.requerido %}required{% endif %}
+          class="w-full bg-[#141414] border {% if item.error %}border-red-500{% else %}border-[#222222]{% endif %} px-4 py-3 text-white focus:outline-none focus:border-[#f7931a] transition-colors"
+        >
+        {% if item.error %}
+          <p class="text-red-400 text-xs mt-1">{{ item.error }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="border border-[#222222] bg-[#141414] px-6 py-8 text-center">
+        <p class="text-white/40 text-sm">Esta tienda no requiere datos adicionales.</p>
+      </div>
+    {% endif %}
+
+    <div class="flex gap-3 pt-2">
+      <a href="{% url 'reservas:step2_models' slug=tienda.slug %}"
+         class="flex-none border border-[#222222] text-white/40 font-title uppercase tracking-widest px-6 py-4 hover:border-white/40 transition-colors text-sm">
+        ← Atrás
+      </a>
+      <button type="submit"
+              class="flex-1 bg-[#f7931a] text-[#080806] font-title font-bold uppercase tracking-widest py-4 text-lg hover:bg-[#e0841a] transition-colors">
+        Continuar →
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

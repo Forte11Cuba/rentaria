@@ -1,0 +1,200 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Nueva transferencia — {{ tienda.nombre }} — Rentaria{% endblock %}
+{% block page_title %}Nueva transferencia{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="flex items-center gap-2 mb-6">
+        <a href="{% url 'owner_accounts' slug=tienda.slug %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">Cuentas</a>
+        <span class="text-br-border">/</span>
+        <span class="text-xs text-br-text opacity-70">Nueva transferencia</span>
+    </div>
+
+    <form method="post" id="transfer-form">
+        {% csrf_token %}
+        <div class="bg-br-card border border-br-border divide-y divide-br-border">
+
+            <!-- Cuenta origen + monto origen -->
+            <div class="px-5 py-4">
+                <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-3">Origen</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                            Cuenta <span class="text-br-accent">*</span>
+                        </label>
+                        <select name="cuenta_origen" id="id_cuenta_origen" required
+                                class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                            <option value="">— elegir —</option>
+                            {% for cuenta in form.cuenta_origen.field.queryset %}
+                            <option value="{{ cuenta.pk }}"
+                                    data-moneda="{{ cuenta.moneda }}"
+                                    {% if form.cuenta_origen.value == cuenta.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ cuenta.nombre }} ({{ cuenta.moneda }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% for e in form.cuenta_origen.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                            Monto a debitar <span class="text-br-accent">*</span>
+                        </label>
+                        <input type="number" name="monto_origen" id="id_monto_origen"
+                               value="{{ form.monto_origen.value|default:'' }}"
+                               step="0.01" min="0" required
+                               class="w-full bg-br-bg border border-br-border text-sm text-br-text font-mono px-3 py-2 focus:outline-none focus:border-br-accent transition-colors"
+                               placeholder="0.00">
+                        {% for e in form.monto_origen.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasa de cambio -->
+            <div class="px-5 py-4 bg-br-bg">
+                <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                            Tasa de cambio <span class="text-br-accent">*</span>
+                        </label>
+                        <input type="number" name="tasa_cambio" id="id_tasa_cambio"
+                               value="{{ form.tasa_cambio.value|default:'1' }}"
+                               step="any" min="0" required
+                               class="w-full bg-br-card border border-br-border text-sm text-br-text font-mono px-3 py-2 focus:outline-none focus:border-br-accent transition-colors"
+                               placeholder="1">
+                        <p class="text-xs text-br-text opacity-30 mt-1">Unidades de destino por unidad de origen</p>
+                        {% for e in form.tasa_cambio.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                    </div>
+                    <div class="text-br-text opacity-30 mt-5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs text-br-text opacity-60 mb-1.5">Monto a acreditar</label>
+                        <input type="number" name="monto_destino" id="id_monto_destino"
+                               value="{{ form.monto_destino.value|default:'' }}"
+                               step="0.01" min="0"
+                               class="w-full bg-br-card border border-br-border text-sm text-br-text font-mono px-3 py-2 focus:outline-none focus:border-br-accent transition-colors"
+                               placeholder="auto">
+                        <p class="text-xs text-br-text opacity-30 mt-1">Se calcula automáticamente</p>
+                        {% for e in form.monto_destino.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cuenta destino -->
+            <div class="px-5 py-4">
+                <p class="text-xs text-br-text opacity-40 uppercase tracking-wider mb-3">Destino</p>
+                <div>
+                    <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                        Cuenta <span class="text-br-accent">*</span>
+                    </label>
+                    <select name="cuenta_destino" id="id_cuenta_destino" required
+                            class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                        <option value="">— elegir —</option>
+                        {% for cuenta in form.cuenta_destino.field.queryset %}
+                        <option value="{{ cuenta.pk }}"
+                                data-moneda="{{ cuenta.moneda }}"
+                                {% if form.cuenta_destino.value == cuenta.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ cuenta.nombre }} ({{ cuenta.moneda }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% for e in form.cuenta_destino.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <!-- Descripción + fecha -->
+            <div class="px-5 py-4 grid grid-cols-2 gap-4">
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-xs text-br-text opacity-60 mb-1.5">Descripción</label>
+                    <input type="text" name="descripcion" value="{{ form.descripcion.value|default:'' }}"
+                           maxlength="500" placeholder="Descripción opcional"
+                           class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                        Fecha <span class="text-br-accent">*</span>
+                    </label>
+                    <input type="date" name="fecha" value="{{ form.fecha.value|default:'' }}" required
+                           class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                    {% for e in form.fecha.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="mt-3 text-xs text-red-400 px-1">{{ form.non_field_errors|join:", " }}</div>
+        {% endif %}
+
+        <!-- Resumen -->
+        <div id="resumen" class="mt-4 px-4 py-3 bg-br-card border border-br-border text-xs text-br-text opacity-60 hidden">
+            Transferencia: <span id="resumen-texto" class="font-mono"></span>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+            <button type="submit"
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+                Realizar transferencia
+            </button>
+            <a href="{% url 'owner_accounts' slug=tienda.slug %}"
+               class="px-4 py-2 text-sm text-br-text opacity-60 hover:opacity-100 transition-opacity">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var montoOrigen  = document.getElementById('id_monto_origen');
+    var tasa         = document.getElementById('id_tasa_cambio');
+    var montoDestino = document.getElementById('id_monto_destino');
+    var cuentaOrigen = document.getElementById('id_cuenta_origen');
+    var cuentaDest   = document.getElementById('id_cuenta_destino');
+    var resumen      = document.getElementById('resumen');
+    var resumenTexto = document.getElementById('resumen-texto');
+
+    function getMoneda(select) {
+        var opt = select.options[select.selectedIndex];
+        return opt ? (opt.dataset.moneda || '') : '';
+    }
+
+    function recalcular() {
+        var mo = parseFloat(montoOrigen.value);
+        var t  = parseFloat(tasa.value);
+        if (!isNaN(mo) && !isNaN(t) && mo > 0 && t >= 0) {
+            var md = (mo * t).toFixed(2);
+            montoDestino.value = md;
+        }
+        actualizarResumen();
+    }
+
+    function actualizarResumen() {
+        var mo = montoOrigen.value;
+        var md = montoDestino.value;
+        var monedaO = getMoneda(cuentaOrigen);
+        var monedaD = getMoneda(cuentaDest);
+        if (mo && md && monedaO && monedaD) {
+            resumenTexto.textContent = mo + ' ' + monedaO + ' → ' + md + ' ' + monedaD;
+            resumen.classList.remove('hidden');
+        } else {
+            resumen.classList.add('hidden');
+        }
+    }
+
+    montoOrigen.addEventListener('input', recalcular);
+    tasa.addEventListener('input', recalcular);
+    montoDestino.addEventListener('input', actualizarResumen);
+    cuentaOrigen.addEventListener('change', actualizarResumen);
+    cuentaDest.addEventListener('change', actualizarResumen);
+
+    recalcular();
+}());
+</script>
+{% endblock %}

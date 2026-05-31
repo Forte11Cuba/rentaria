@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+!media/.gitkeep
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Docker volumes (si se mountean al host)
+postgres_data/
+static_volume/
+
+# Certbot / SSL
+certbot/conf/
+certbot/www/
+
+# Setup temporal
+nginx.http.conf
+
+# Caches de tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Claude Code local config
+.claude/

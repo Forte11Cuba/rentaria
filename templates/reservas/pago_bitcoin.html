@@ -1,0 +1,88 @@
+{% extends "base_cliente.html" %}
+
+{% block title %}Pago Bitcoin — {{ orden.id }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto pt-8">
+
+  <h1 class="font-title text-4xl font-bold uppercase tracking-wide mb-2">Pago Bitcoin</h1>
+  <p class="text-white/40 mb-1">{{ tienda.nombre }}</p>
+  <p class="price text-white/30 text-sm mb-8">Orden {{ orden.id }}</p>
+
+  <!-- Amount -->
+  <div class="bg-[#141414] border border-[#222222] p-5 mb-6 flex justify-between items-center">
+    <span class="text-white/40 text-sm font-title uppercase tracking-widest">Total a pagar</span>
+    <span class="price text-[#f7931a] text-3xl font-bold">${{ orden.monto_total_usd }}</span>
+  </div>
+
+  <!-- QR + checkout link -->
+  <div class="bg-[#141414] border border-[#222222] p-6 mb-6 text-center">
+    {% if checkout_url %}
+    <div id="qrcode" class="flex justify-center mb-4"></div>
+    <a href="{{ checkout_url }}" target="_blank"
+       class="inline-block border border-[#f7931a] text-[#f7931a] font-title uppercase tracking-widest px-6 py-3 text-sm hover:bg-[#f7931a] hover:text-[#080806] transition-colors mb-4">
+      Abrir en BTCPay →
+    </a>
+    {% else %}
+    <div class="py-8">
+      <p class="text-white/40 text-sm">Configurando pago Bitcoin...</p>
+      <p class="text-white/20 text-xs mt-2">Si el problema persiste, contacta a la tienda.</p>
+    </div>
+    {% endif %}
+
+    <!-- Countdown timer -->
+    <div class="border-t border-[#222222] mt-4 pt-4">
+      <p class="text-white/40 text-xs font-title uppercase tracking-widest mb-1">Expira en</p>
+      <p id="countdown" class="price text-white/60 text-2xl font-bold">30:00</p>
+    </div>
+  </div>
+
+  <!-- HTMX polling: initial state (outerHTML swap keeps polling alive) -->
+  <div id="status-area"
+       hx-get="{{ status_url }}"
+       hx-trigger="every 5s"
+       hx-target="#status-area"
+       hx-swap="outerHTML"
+       class="flex items-center gap-3 justify-center text-white/40 text-sm py-3 border border-[#222222]">
+    <span class="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+    Esperando confirmación de pago...
+  </div>
+
+  <p class="text-white/20 text-xs mt-6 text-center">
+    Escanea el QR con tu wallet o abre el link de pago.
+  </p>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+{% if checkout_url %}
+new QRCode(document.getElementById('qrcode'), {
+  text: "{{ checkout_url }}",
+  width: 200,
+  height: 200,
+  colorDark: '#f7931a',
+  colorLight: '#141414',
+});
+{% endif %}
+
+const expiryTs = {{ expiry_ts }};
+function tick() {
+  const restante = Math.max(0, Math.floor((expiryTs - Date.now()) / 1000));
+  const m = String(Math.floor(restante / 60)).padStart(2, '0');
+  const s = String(restante % 60).padStart(2, '0');
+  const el = document.getElementById('countdown');
+  if (el) {
+    el.textContent = `${m}:${s}`;
+    if (restante === 0) el.classList.add('text-red-400');
+  }
+}
+tick();
+setInterval(tick, 1000);
+</script>
+{% endblock %}

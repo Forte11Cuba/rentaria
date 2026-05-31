@@ -1,0 +1,78 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+
+  <!-- Métricas -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-br-card border border-br-border p-5">
+      <p class="text-br-text opacity-40 text-xs uppercase tracking-widest mb-1">Órdenes hoy</p>
+      <p class="text-3xl font-bold text-br-text">{{ ordenes_hoy }}</p>
+    </div>
+    <div class="bg-br-card border border-br-border p-5">
+      <p class="text-br-text opacity-40 text-xs uppercase tracking-widest mb-1">Ingresos del mes</p>
+      <p class="text-3xl font-bold text-br-accent">${{ ingresos_mes }}</p>
+    </div>
+    <div class="bg-br-card border border-br-border p-5">
+      <p class="text-br-text opacity-40 text-xs uppercase tracking-widest mb-1">Motos en renta hoy</p>
+      <p class="text-3xl font-bold text-br-text">{{ motos_en_renta }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Órdenes cash pendientes -->
+    <div class="bg-br-card border border-br-border">
+      <div class="px-5 py-4 border-b border-br-border flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-br-text">Pendientes de confirmación (efectivo)</h2>
+        <a href="{% url 'owner_orders' slug=tienda.slug %}?estado=pendiente"
+           class="text-xs text-br-accent hover:underline">Ver todas →</a>
+      </div>
+      {% if pendientes_cash %}
+      <div class="divide-y divide-br-border">
+        {% for orden in pendientes_cash %}
+        <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=orden.id %}"
+           class="flex items-center justify-between px-5 py-3 hover:bg-br-bg transition-colors">
+          <div>
+            <p class="text-sm text-br-text font-mono">{{ orden.id }}</p>
+            <p class="text-xs text-br-text opacity-40">{{ orden.created_at|date:"d/m/Y H:i" }}</p>
+          </div>
+          <p class="text-sm font-bold text-br-accent">${{ orden.monto_total_usd }}</p>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-sm text-br-text opacity-30 text-center">Sin órdenes pendientes</p>
+      {% endif %}
+    </div>
+
+    <!-- Próximas entregas -->
+    <div class="bg-br-card border border-br-border">
+      <div class="px-5 py-4 border-b border-br-border flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-br-text">Próximas entregas (7 días)</h2>
+        <a href="{% url 'owner_orders' slug=tienda.slug %}?estado=confirmada"
+           class="text-xs text-br-accent hover:underline">Ver todas →</a>
+      </div>
+      {% if proximas_entregas %}
+      <div class="divide-y divide-br-border">
+        {% for orden in proximas_entregas %}
+        <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=orden.id %}"
+           class="flex items-center justify-between px-5 py-3 hover:bg-br-bg transition-colors">
+          <div>
+            <p class="text-sm text-br-text font-mono">{{ orden.id }}</p>
+            <p class="text-xs text-br-text opacity-40">Entrega: {{ orden.fecha_inicio|date:"d/m/Y" }}</p>
+          </div>
+          <p class="text-xs text-green-400 border border-green-400/30 px-2 py-0.5">Confirmada</p>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-sm text-br-text opacity-30 text-center">Sin entregas próximas</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "base_cliente.html" %}
+
+{% block title %}Motos disponibles — {{ tienda.nombre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto pt-8">
+
+  <!-- Step indicator -->
+  <div class="flex items-center gap-2 mb-10 text-xs font-title tracking-widest uppercase">
+    <span class="text-white/40">01 Fechas</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-[#f7931a] font-bold">02</span>
+    <span class="text-[#f7931a]">Motos</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-white/20">03 Datos</span>
+    <span class="flex-1 border-t border-[#222222]"></span>
+    <span class="text-white/20">04 Pago</span>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8">
+
+    <!-- Model grid -->
+    <div class="flex-1">
+      <h1 class="font-title text-4xl font-bold uppercase tracking-wide mb-1">Elige tus motos</h1>
+      <p class="text-white/40 mb-6">
+        {{ fecha_inicio }} → {{ fecha_fin }} &nbsp;·&nbsp; {{ dias }} día{{ dias|pluralize }}
+        <a href="{% url 'reservas:step1_dates' slug=tienda.slug %}" class="text-[#f7931a] ml-2 text-xs hover:underline">cambiar fechas</a>
+      </p>
+
+      {% if error %}
+        <div class="border border-red-500/30 bg-red-500/10 text-red-400 px-4 py-3 mb-6 text-sm">{{ error }}</div>
+      {% endif %}
+
+      {% if not modelos_disponibles %}
+        <div class="border border-[#222222] bg-[#141414] px-6 py-12 text-center">
+          <p class="text-white/40">No hay motos disponibles para estas fechas.</p>
+          <a href="{% url 'reservas:step1_dates' slug=tienda.slug %}" class="text-[#f7931a] text-sm mt-2 inline-block hover:underline">← Cambiar fechas</a>
+        </div>
+      {% else %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="modelo-grid">
+          {% for item in modelos_disponibles %}
+          <div
+            class="bg-[#141414] border border-[#222222] p-4 flex flex-col"
+            data-modelo-id="{{ item.modelo.id }}"
+            data-precio="{{ item.precio_dia|default:'0' }}"
+            data-max="{{ item.unidades }}"
+            data-fotos='{{ item.fotos_json }}'
+          >
+            <!-- Image -->
+            {% if item.modelo.imagen or item.fotos_json != '[]' %}
+            <div class="relative mb-4 cursor-zoom-in group" onclick="abrirCarrusel(this.closest('[data-fotos]').dataset.fotos)">
+              {% if item.modelo.imagen %}
+              <img src="{{ item.modelo.imagen.url }}" alt="{{ item.modelo.marca }} {{ item.modelo.modelo }}"
+                   class="w-full h-40 object-cover border border-[#222222]">
+              {% endif %}
+              {% if item.fotos_json != '[]' %}
+              <span class="absolute bottom-2 right-2 bg-black/70 text-white/70 text-xs px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">ver fotos</span>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="w-full h-40 bg-[#1a1a1a] border border-[#222222] mb-4 flex items-center justify-center">
+              <span class="text-white/20 font-title text-sm uppercase tracking-widest">Sin imagen</span>
+            </div>
+            {% endif %}
+
+            <!-- Info -->
+            <div class="flex-1">
+              <p class="text-white/40 text-xs font-title uppercase tracking-widest">{{ item.modelo.marca }}</p>
+              <h3 class="font-title text-xl font-bold uppercase text-white/80 leading-tight">{{ item.modelo.modelo }}</h3>
+              {% if item.modelo.descripcion %}
+              <p class="text-white/40 text-sm mt-1 line-clamp-2">{{ item.modelo.descripcion }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Price + counter -->
+            <div class="mt-4 flex items-center justify-between">
+              {% if item.precio_dia %}<span class="price text-[#f7931a] font-bold text-lg">${{ item.precio_dia }}<span class="text-white/30 text-sm font-normal">/día</span></span>{% else %}<span class="text-white/30 text-sm">Sin precio</span>{% endif %}
+              <div class="flex items-center gap-0">
+                <button
+                  type="button"
+                  onclick="cambiarCantidad({{ item.modelo.id }}, -1)"
+                  class="w-8 h-8 border border-[#222222] bg-[#1a1a1a] text-white/60 hover:text-white hover:border-[#f7931a] flex items-center justify-center text-lg font-bold transition-colors"
+                >−</button>
+                <span
+                  id="cant-{{ item.modelo.id }}"
+                  class="w-8 h-8 border-t border-b border-[#222222] bg-[#141414] flex items-center justify-center text-sm font-price text-white/80"
+                >0</span>
+                <button
+                  type="button"
+                  onclick="cambiarCantidad({{ item.modelo.id }}, 1)"
+                  class="w-8 h-8 border border-[#222222] bg-[#1a1a1a] text-white/60 hover:text-white hover:border-[#f7931a] flex items-center justify-center text-lg font-bold transition-colors"
+                >+</button>
+              </div>
+            </div>
+            <p class="text-white/20 text-xs mt-1 text-right">{{ item.unidades }} disponible{{ item.unidades|pluralize }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Cart summary (sticky) -->
+    {% if modelos_disponibles %}
+    <div class="lg:w-72">
+      <div class="sticky top-4 bg-[#141414] border border-[#222222] p-5">
+        <h2 class="font-title text-lg font-bold uppercase tracking-widest text-white/60 mb-4">Resumen</h2>
+        <div id="resumen-lista" class="space-y-2 text-sm text-white/60 min-h-[40px]">
+          <p class="text-white/20 text-xs">Sin motos seleccionadas</p>
+        </div>
+        <div class="border-t border-[#222222] mt-4 pt-4 flex justify-between items-baseline">
+          <span class="text-white/40 text-xs font-title uppercase tracking-widest">Total</span>
+          <span id="resumen-total" class="price text-[#f7931a] text-xl font-bold">$0</span>
+        </div>
+        <p id="resumen-dias" class="text-white/20 text-xs mt-1 text-right">{{ dias }} día{{ dias|pluralize }}</p>
+
+        <form method="post" id="form-modelos" class="mt-5">
+          {% csrf_token %}
+          <input type="hidden" name="carrito" id="carrito-input" value="[]">
+          <button
+            type="submit"
+            id="btn-continuar"
+            class="w-full bg-[#f7931a] text-[#080806] font-title font-bold uppercase tracking-widest py-3 hover:bg-[#e0841a] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled
+          >
+            Continuar →
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Carrusel lightbox -->
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+     onclick="cerrarLightbox()">
+  <img id="lightbox-img" src="" alt="" class="max-h-[85vh] max-w-[85vw] object-contain">
+  <button id="lb-prev" onclick="event.stopPropagation();moverFoto(-1)"
+          class="hidden absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 text-white text-2xl flex items-center justify-center hover:bg-black/90">‹</button>
+  <button id="lb-next" onclick="event.stopPropagation();moverFoto(1)"
+          class="hidden absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 text-white text-2xl flex items-center justify-center hover:bg-black/90">›</button>
+  <div id="lb-counter" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs"></div>
+  <button onclick="cerrarLightbox()" class="absolute top-4 right-5 text-white/60 hover:text-white text-3xl font-light leading-none">&times;</button>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let lbFotos = [], lbIdx = 0;
+
+function abrirCarrusel(fotosJson) {
+  lbFotos = JSON.parse(fotosJson || '[]');
+  if (!lbFotos.length) return;
+  lbIdx = 0;
+  _mostrarFoto();
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.addEventListener('keydown', teclaLightbox);
+}
+function _mostrarFoto() {
+  document.getElementById('lightbox-img').src = lbFotos[lbIdx];
+  const prev = document.getElementById('lb-prev');
+  const next = document.getElementById('lb-next');
+  const counter = document.getElementById('lb-counter');
+  prev.classList.toggle('hidden', lbIdx === 0);
+  next.classList.toggle('hidden', lbIdx === lbFotos.length - 1);
+  if (lbFotos.length > 1) {
+    counter.textContent = `${lbIdx + 1} / ${lbFotos.length}`;
+    counter.classList.remove('hidden');
+  } else {
+    counter.classList.add('hidden');
+  }
+}
+function moverFoto(delta) {
+  lbIdx = Math.max(0, Math.min(lbFotos.length - 1, lbIdx + delta));
+  _mostrarFoto();
+}
+function cerrarLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.removeEventListener('keydown', teclaLightbox);
+}
+function teclaLightbox(e) {
+  if (e.key === 'Escape') cerrarLightbox();
+  if (e.key === 'ArrowLeft') moverFoto(-1);
+  if (e.key === 'ArrowRight') moverFoto(1);
+}
+
+const DIAS = {{ dias }};
+const carrito = {};  // modelo_id → {cantidad, precio, nombre}
+
+// Build model data from DOM
+document.querySelectorAll('[data-modelo-id]').forEach(el => {
+  const id = el.dataset.modeloId;
+  carrito[id] = {
+    cantidad: 0,
+    precio: parseFloat(el.dataset.precio),
+    max: parseInt(el.dataset.max),
+    nombre: el.querySelector('h3').textContent.trim(),
+    marca: el.querySelector('p').textContent.trim(),
+  };
+});
+
+function cambiarCantidad(modeloId, delta) {
+  const id = String(modeloId);
+  const item = carrito[id];
+  const nueva = Math.max(0, Math.min(item.max, item.cantidad + delta));
+  item.cantidad = nueva;
+  document.getElementById(`cant-${id}`).textContent = nueva;
+  actualizarResumen();
+}
+
+function actualizarResumen() {
+  const lista = document.getElementById('resumen-lista');
+  const totalEl = document.getElementById('resumen-total');
+  const btn = document.getElementById('btn-continuar');
+  const carritoInput = document.getElementById('carrito-input');
+
+  let total = 0;
+  let hayAlgo = false;
+  let listaHtml = '';
+  const carritoData = [];
+
+  Object.entries(carrito).forEach(([id, item]) => {
+    if (item.cantidad > 0) {
+      hayAlgo = true;
+      const sub = item.precio * item.cantidad * DIAS;
+      total += sub;
+      listaHtml += `
+        <div class="flex justify-between">
+          <span class="text-white/60">${item.marca} ${item.nombre} ×${item.cantidad}</span>
+          <span class="price text-white/80">$${sub.toFixed(2)}</span>
+        </div>`;
+      carritoData.push({modelo_id: parseInt(id), cantidad: item.cantidad});
+    }
+  });
+
+  lista.innerHTML = hayAlgo ? listaHtml : '<p class="text-white/20 text-xs">Sin motos seleccionadas</p>';
+  totalEl.textContent = `$${total.toFixed(2)}`;
+  btn.disabled = !hayAlgo;
+  carritoInput.value = JSON.stringify(carritoData);
+}
+</script>
+{% endblock %}

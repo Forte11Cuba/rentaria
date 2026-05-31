@@ -1,0 +1,87 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}Órdenes — Superadmin{% endblock %}
+{% block page_title %}Órdenes{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<form method="get" class="flex gap-3 mb-5">
+    <select name="tienda"
+            class="bg-br-card border border-br-border text-br-text text-xs px-3 py-2 focus:outline-none focus:border-br-accent">
+        <option value="">Todas las tiendas</option>
+        {% for t in tiendas %}
+        <option value="{{ t.pk }}" {% if filtro_tienda == t.pk|stringformat:"s" %}selected{% endif %}>
+            {{ t.nombre }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <select name="estado"
+            class="bg-br-card border border-br-border text-br-text text-xs px-3 py-2 focus:outline-none focus:border-br-accent">
+        <option value="">Todos los estados</option>
+        {% for val, label in estados %}
+        <option value="{{ val }}" {% if filtro_estado == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit"
+            class="text-xs bg-br-border text-br-text px-3 py-2 hover:bg-br-border-strong transition-colors">
+        Filtrar
+    </button>
+
+    {% if filtro_tienda or filtro_estado %}
+    <a href="{% url 'superadmin_orders' %}"
+       class="text-xs text-br-text opacity-40 hover:opacity-70 px-2 py-2 transition-opacity">
+        Limpiar
+    </a>
+    {% endif %}
+</form>
+
+<!-- Tabla -->
+{% if ordenes %}
+<div class="bg-br-card border border-br-border">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b border-br-border">
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">ID</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Tienda</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Fechas</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Total</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Pago</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Estado</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for orden in ordenes %}
+            <tr class="border-b border-br-border last:border-0">
+                <td class="px-4 py-3 font-mono text-xs text-br-text opacity-70">{{ orden.id }}</td>
+                <td class="px-4 py-3 text-br-text">{{ orden.tienda.nombre }}</td>
+                <td class="px-4 py-3 text-br-text opacity-60 text-xs">{{ orden.fecha_inicio|date:"d/m" }} – {{ orden.fecha_fin|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3 text-br-text">${{ orden.monto_total_usd }}</td>
+                <td class="px-4 py-3 text-br-text opacity-50 text-xs">
+                    {% if orden.metodo_pago == 'bitcoin_btcpay' %}Bitcoin{% else %}Efectivo{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    {% if orden.estado == 'confirmada' %}
+                    <span class="text-xs text-green-400 bg-green-900/20 border border-green-700/30 px-2 py-0.5">Confirmada</span>
+                    {% elif orden.estado == 'pendiente' %}
+                    <span class="text-xs text-br-accent bg-br-accent/10 border border-br-accent/30 px-2 py-0.5">Pendiente</span>
+                    {% else %}
+                    <span class="text-xs text-br-text opacity-40 bg-br-bg border border-br-border px-2 py-0.5">Cancelada</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-br-text opacity-40 text-xs">{{ orden.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border px-4 py-12 text-center">
+    <p class="text-xs text-br-text opacity-30">No hay órdenes{% if filtro_tienda or filtro_estado %} con los filtros aplicados{% endif %}.</p>
+</div>
+{% endif %}
+
+{% endblock %}

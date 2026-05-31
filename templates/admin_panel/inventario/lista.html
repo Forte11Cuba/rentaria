@@ -1,0 +1,164 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Inventario — {{ tienda.nombre }} — Rentaria{% endblock %}
+
+{% block page_title %}Inventario{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-base font-semibold text-br-text">Modelos de moto</h2>
+    <div class="flex gap-2">
+        <a href="{% url 'owner_unit_add' slug=tienda.slug %}"
+           class="flex items-center gap-2 px-3 py-2 border border-br-border text-xs text-br-text hover:border-br-accent hover:text-br-accent transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar chapa
+        </a>
+        <a href="{% url 'owner_model_create' slug=tienda.slug %}"
+           class="flex items-center gap-2 px-3 py-2 bg-br-accent text-xs font-semibold text-[#080806] hover:bg-br-accent-hover transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuevo modelo
+        </a>
+    </div>
+</div>
+
+{% if modelos %}
+<div class="space-y-4">
+    {% for modelo in modelos %}
+    <div class="bg-br-card border border-br-border">
+        <!-- Modelo header -->
+        <div class="flex items-center gap-4 p-4 border-b border-br-border">
+            {% if modelo.imagen %}
+            <img src="{{ modelo.imagen.url }}" alt="{{ modelo.marca }} {{ modelo.modelo }}"
+                 class="w-16 h-12 object-cover shrink-0">
+            {% else %}
+            <div class="w-16 h-12 bg-br-bg border border-br-border shrink-0 flex items-center justify-center">
+                <svg class="w-6 h-6 text-br-text opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            {% endif %}
+
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-br-text">{{ modelo.marca }} {{ modelo.modelo }}</h3>
+                    {% if not modelo.activo %}
+                    <span class="text-xs px-1.5 py-0.5 border border-br-border text-br-text opacity-40">Inactivo</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-br-text opacity-50 mt-0.5">
+                    {% with primer_plan=modelo.planes.first %}{% if primer_plan %}Desde ${{ primer_plan.precio_dia }}/día · {{ modelo.planes.count }} plan{% if modelo.planes.count != 1 %}es{% endif %}{% else %}<span class="text-yellow-600">Sin planes de precio</span>{% endif %}{% endwith %} ·
+                    <span class="{% if modelo.unidades_activas > 0 %}text-green-400{% else %}text-br-text opacity-40{% endif %}">
+                        {{ modelo.unidades_activas }} unidad{% if modelo.unidades_activas != 1 %}es{% endif %} activa{% if modelo.unidades_activas != 1 %}s{% endif %}
+                    </span>
+                    {% if modelo.unidades_totales > modelo.unidades_activas %}
+                    · {{ modelo.unidades_totales }} total
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+                <a href="{% url 'owner_model_edit' slug=tienda.slug pk=modelo.pk %}"
+                   class="px-3 py-1.5 text-xs text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                    Editar
+                </a>
+                <form method="post" action="{% url 'owner_model_toggle' slug=tienda.slug pk=modelo.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-3 py-1.5 text-xs border transition-colors
+                                   {% if modelo.activo %}border-br-border text-br-text opacity-60 hover:opacity-100 hover:border-red-700/50 hover:text-red-400{% else %}border-green-700/40 text-green-400 hover:bg-green-900/20{% endif %}">
+                        {% if modelo.activo %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Unidades (chapas) colapsables -->
+        {% with unidades=modelo.motos.all %}
+        {% if unidades %}
+        <div x-data="{ open: false }">
+            <!-- Toggle -->
+            <button type="button" @click="open = !open"
+                    class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-br-text opacity-50 hover:opacity-100 hover:bg-br-bg transition-colors border-t border-br-border">
+                <span>{{ modelo.unidades_activas }} activa{% if modelo.unidades_activas != 1 %}s{% endif %} · {{ modelo.unidades_totales }} total</span>
+                <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <!-- Lista de chapas -->
+            <div x-show="open" x-transition class="border-t border-br-border">
+                <div class="divide-y divide-br-border">
+                    {% for moto in unidades %}
+                    <div class="flex items-center justify-between px-4 py-2 {% if not moto.activa %}opacity-40{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-mono text-br-text">{{ moto.chapa }}</span>
+                            {% if moto.activa %}
+                            <span class="text-xs text-green-400">Activa</span>
+                            {% else %}
+                            <span class="text-xs text-br-text opacity-50">Inactiva</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <!-- Toggle activa/inactiva -->
+                            <form method="post" action="{% url 'owner_unit_toggle' slug=tienda.slug chapa=moto.chapa %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="px-2.5 py-1 text-xs border transition-colors
+                                               {% if moto.activa %}border-br-border text-br-text opacity-60 hover:opacity-100 hover:border-yellow-600/50 hover:text-yellow-400{% else %}border-green-700/40 text-green-400 hover:bg-green-900/20{% endif %}">
+                                    {% if moto.activa %}Desactivar{% else %}Activar{% endif %}
+                                </button>
+                            </form>
+                            <!-- Eliminar -->
+                            <form method="post" action="{% url 'owner_unit_delete' slug=tienda.slug chapa=moto.chapa %}"
+                                  onsubmit="return confirm('¿Eliminar chapa {{ moto.chapa }}? Esta acción no se puede deshacer.')">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="px-2.5 py-1 text-xs border border-br-border text-br-text opacity-40 hover:opacity-100 hover:border-red-500/50 hover:text-red-400 transition-colors">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <!-- Agregar chapa -->
+                <div class="px-4 py-2.5 border-t border-br-border">
+                    <a href="{% url 'owner_unit_add' slug=tienda.slug %}?modelo={{ modelo.pk }}"
+                       class="text-xs text-br-accent opacity-60 hover:opacity-100 transition-colors">
+                        + Agregar chapa
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="px-4 py-3 border-t border-br-border">
+            <p class="text-xs text-br-text opacity-30">
+                Sin unidades.
+                <a href="{% url 'owner_unit_add' slug=tienda.slug %}?modelo={{ modelo.pk }}"
+                   class="text-br-accent opacity-70 hover:opacity-100">Agregar primera chapa</a>
+            </p>
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border p-12 text-center">
+    <svg class="w-10 h-10 mx-auto text-br-text opacity-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+    </svg>
+    <p class="text-sm text-br-text opacity-40 mb-4">No hay modelos de moto en esta tienda.</p>
+    <a href="{% url 'owner_model_create' slug=tienda.slug %}"
+       class="inline-block px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+        Crear primer modelo
+    </a>
+</div>
+{% endif %}
+{% endblock %}

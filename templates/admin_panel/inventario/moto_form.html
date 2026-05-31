@@ -1,0 +1,76 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Agregar unidad — {{ tienda.nombre }} — Rentaria{% endblock %}
+
+{% block page_title %}Agregar unidad{% endblock %}
+
+{% block content %}
+<div class="max-w-sm">
+    <div class="flex items-center gap-2 mb-6">
+        <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">
+            Inventario
+        </a>
+        <span class="text-br-border">/</span>
+        <span class="text-xs text-br-text">Agregar chapa</span>
+    </div>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- Chapa -->
+        <div>
+            <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                Chapa / Placa <span class="text-br-accent">*</span>
+            </label>
+            <input type="text" name="chapa"
+                   value="{{ form.chapa.value|default:'' }}"
+                   required maxlength="20"
+                   class="w-full bg-br-bg border border-br-border text-br-text font-mono text-sm px-3 py-2 focus:outline-none focus:border-br-accent uppercase"
+                   placeholder="P-123456"
+                   style="text-transform:uppercase">
+            {% for error in form.chapa.errors %}
+            <p class="text-xs text-red-400 mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Modelo -->
+        <div>
+            <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">
+                Modelo <span class="text-br-accent">*</span>
+            </label>
+            <select name="modelo" required
+                    class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                <option value="">— Selecciona un modelo —</option>
+                {% for modelo in form.modelo.field.queryset %}
+                <option value="{{ modelo.pk }}"
+                        {% if form.modelo.value == modelo.pk|stringformat:"s" or request.GET.modelo == modelo.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ modelo.marca }} {{ modelo.modelo }} — ${{ modelo.precio_dia }}/día
+                </option>
+                {% endfor %}
+            </select>
+            {% for error in form.modelo.errors %}
+            <p class="text-xs text-red-400 mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        {% if not form.modelo.field.queryset %}
+        <div class="p-3 bg-br-bg border border-br-border text-xs text-br-text opacity-60">
+            No hay modelos activos. Primero crea un modelo de moto.
+        </div>
+        {% endif %}
+
+        <div class="pt-2 flex gap-3">
+            <button type="submit"
+                    {% if not form.modelo.field.queryset %}disabled{% endif %}
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                Agregar
+            </button>
+            <a href="{% url 'owner_inventory' slug=tienda.slug %}"
+               class="px-6 py-2 text-sm text-br-text border border-br-border hover:border-br-accent hover:text-br-accent transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

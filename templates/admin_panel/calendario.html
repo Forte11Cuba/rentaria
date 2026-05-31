@@ -1,0 +1,112 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block page_title %}Calendario{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<style>
+/* FullCalendar — usa CSS vars del tema (light/dark) */
+:root {
+  --fc-border-color: var(--br-border);
+  --fc-button-bg-color: var(--br-card);
+  --fc-button-border-color: var(--br-border);
+  --fc-button-text-color: var(--br-text);
+  --fc-button-hover-bg-color: var(--br-bg);
+  --fc-button-hover-border-color: var(--br-accent);
+  --fc-button-active-bg-color: var(--br-accent);
+  --fc-button-active-border-color: var(--br-accent);
+  --fc-button-active-text-color: #080806;
+  --fc-today-bg-color: rgba(247,147,26,0.07);
+  --fc-page-bg-color: var(--br-bg);
+  --fc-neutral-bg-color: var(--br-card);
+  --fc-event-border-color: transparent;
+}
+.fc { color: var(--br-text); font-size: 0.8rem; }
+.fc-toolbar-title { color: var(--br-text) !important; font-size: 0.95rem !important; font-weight: 600 !important; }
+.fc-col-header-cell { background: var(--br-card) !important; }
+.fc-col-header-cell-cushion { color: var(--br-text) !important; opacity: 0.5; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none !important; }
+.fc-daygrid-day-number { color: var(--br-text) !important; opacity: 0.6; font-size: 0.75rem; text-decoration: none !important; }
+.fc-day-today .fc-daygrid-day-number { color: var(--br-accent) !important; opacity: 1 !important; font-weight: 700 !important; }
+.fc-day-other .fc-daygrid-day-number { opacity: 0.2 !important; }
+.fc-button { border-radius: 0 !important; font-size: 0.7rem !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; padding: 0.3rem 0.7rem !important; }
+.fc-event { border-radius: 0 !important; font-size: 0.7rem !important; cursor: pointer; border: none !important; padding: 1px 4px !important; }
+.fc-daygrid-event-dot { display: none; }
+.fc-day-selected { background: rgba(247,147,26,0.06) !important; outline: 1px solid rgba(247,147,26,0.3) !important; }
+.fc-scrollgrid { border-color: var(--br-border) !important; }
+.fc-scrollgrid-section > td { border-color: var(--br-border) !important; }
+.fc-theme-standard td, .fc-theme-standard th { border-color: var(--br-border) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex gap-0 h-full" style="min-height: 700px;">
+
+  <!-- Calendario -->
+  <div class="flex-1 min-w-0 pr-6">
+    <div id="calendar"></div>
+  </div>
+
+  <!-- Panel de día -->
+  <div class="w-72 shrink-0 border-l border-br-border">
+    <div id="dia-panel" class="h-full overflow-y-auto">
+      <div class="p-6 text-center pt-12">
+        <div class="w-10 h-10 border border-br-border flex items-center justify-center mx-auto mb-3">
+          <svg class="w-4 h-4 text-br-text opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <p class="text-xs text-br-text opacity-30">Selecciona un día</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const calendarEl = document.getElementById('calendar');
+  const slug = '{{ tienda.slug }}';
+
+  function loadDia(dateStr) {
+    document.querySelectorAll('.fc-day-selected').forEach(el => el.classList.remove('fc-day-selected'));
+    const dayEl = calendarEl.querySelector(`[data-date="${dateStr}"]`);
+    if (dayEl) dayEl.classList.add('fc-day-selected');
+    htmx.ajax('GET', `/dashboard/shop/${slug}/calendar/day/${dateStr}/`, {
+      target: '#dia-panel',
+      swap: 'innerHTML',
+    });
+  }
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'es',
+    firstDay: 1,
+    height: 'auto',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek',
+    },
+    events: {
+      url: '{% url "owner_calendar_events" slug=tienda.slug %}',
+      method: 'GET',
+    },
+    dateClick: function (info) {
+      loadDia(info.dateStr);
+    },
+    eventClick: function (info) {
+      const dateStr = info.event.startStr.split('T')[0];
+      loadDia(dateStr);
+    },
+  });
+
+  calendar.render();
+
+  // Cargar hoy al iniciar
+  const today = new Date().toISOString().split('T')[0];
+  loadDia(today);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Cuentas — {{ tienda.nombre }} — Rentaria{% endblock %}
+{% block page_title %}Cuentas{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-base font-semibold text-br-text">Cuentas</h2>
+        <p class="text-xs text-br-text opacity-40 mt-0.5">Gastos, ingresos y saldos por cuenta.</p>
+    </div>
+    <div class="flex gap-2">
+        {% if cuentas.count > 1 %}
+        <a href="{% url 'owner_transfer_new' slug=tienda.slug %}"
+           class="flex items-center gap-2 px-3 py-2 border border-br-border text-xs text-br-text hover:border-br-accent hover:text-br-accent transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            Transferencia
+        </a>
+        {% endif %}
+        <a href="{% url 'owner_account_create' slug=tienda.slug %}"
+           class="flex items-center gap-2 px-3 py-2 bg-br-accent text-xs font-semibold text-[#080806] hover:bg-br-accent-hover transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nueva cuenta
+        </a>
+    </div>
+</div>
+
+{% if cuentas %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for cuenta in cuentas %}
+    <a href="{% url 'owner_account_detail' slug=tienda.slug pk=cuenta.pk %}"
+       class="bg-br-card border border-br-border p-5 hover:border-br-accent/40 transition-colors group block">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-semibold text-br-text group-hover:text-white transition-colors">{{ cuenta.nombre }}</h3>
+                <span class="text-xs text-br-text opacity-40 font-mono">{{ cuenta.moneda }}</span>
+            </div>
+            {% if not cuenta.activa %}
+            <span class="text-xs px-1.5 py-0.5 border border-br-border text-br-text opacity-30">inactiva</span>
+            {% endif %}
+        </div>
+        <div class="mt-2">
+            <span class="text-2xl font-bold font-mono
+                         {% if cuenta.saldo >= 0 %}text-br-text{% else %}text-red-400{% endif %}">
+                {% if cuenta.saldo >= 0 %}+{% endif %}{{ cuenta.saldo|floatformat:2 }}
+            </span>
+            <span class="text-xs text-br-text opacity-40 ml-1">{{ cuenta.moneda }}</span>
+        </div>
+        <p class="text-xs text-br-text opacity-30 mt-3 group-hover:opacity-50 transition-opacity">
+            Ver movimientos →
+        </p>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border p-12 text-center">
+    <svg class="w-10 h-10 mx-auto text-br-text opacity-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+    </svg>
+    <p class="text-sm text-br-text opacity-40 mb-4">No hay cuentas registradas.</p>
+    <a href="{% url 'owner_account_create' slug=tienda.slug %}"
+       class="inline-block px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+        Crear primera cuenta
+    </a>
+</div>
+{% endif %}
+{% endblock %}

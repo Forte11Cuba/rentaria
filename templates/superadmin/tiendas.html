@@ -1,0 +1,57 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}Tiendas — Superadmin{% endblock %}
+{% block page_title %}Tiendas{% endblock %}
+
+{% block header %}
+<div class="flex items-center justify-between w-full">
+    <h1 class="text-sm font-semibold text-br-text">Tiendas</h1>
+    <a href="{% url 'superadmin_shop_create' %}"
+       class="text-xs bg-br-accent text-[#080806] font-semibold px-3 py-1.5 hover:bg-br-accent-hover transition-colors">
+        + Nueva tienda
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if tiendas %}
+<div class="bg-br-card border border-br-border">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b border-br-border">
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Tienda</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Slug</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Dueño</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Estado</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Creada</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tienda in tiendas %}
+            <tr class="border-b border-br-border last:border-0">
+                <td class="px-4 py-3 text-br-text font-medium">{{ tienda.nombre }}</td>
+                <td class="px-4 py-3 text-br-text opacity-50 font-mono text-xs">{{ tienda.slug }}</td>
+                <td class="px-4 py-3 text-br-text opacity-70">{{ tienda.dueno.username }}</td>
+                <td class="px-4 py-3">
+                    {% if tienda.activa %}
+                    <span class="text-xs text-green-400 bg-green-900/20 border border-green-700/30 px-2 py-0.5">Activa</span>
+                    {% else %}
+                    <span class="text-xs text-br-text opacity-40 bg-br-bg border border-br-border px-2 py-0.5">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-br-text opacity-40 text-xs">{{ tienda.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-br-card border border-br-border px-4 py-12 text-center">
+    <p class="text-xs text-br-text opacity-30 mb-4">No hay tiendas registradas aún.</p>
+    <a href="{% url 'superadmin_shop_create' %}"
+       class="text-xs bg-br-accent text-[#080806] font-semibold px-4 py-2 hover:bg-br-accent-hover transition-colors">
+        Crear primera tienda
+    </a>
+</div>
+{% endif %}
+{% endblock %}

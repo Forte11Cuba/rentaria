@@ -1,0 +1,112 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block title %}Nueva operación — {{ cuenta.nombre }} — Rentaria{% endblock %}
+{% block page_title %}Nueva operación{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    <div class="flex items-center gap-2 mb-6">
+        <a href="{% url 'owner_accounts' slug=tienda.slug %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">Cuentas</a>
+        <span class="text-br-border">/</span>
+        <a href="{% url 'owner_account_detail' slug=tienda.slug pk=cuenta.pk %}"
+           class="text-xs text-br-text opacity-50 hover:opacity-80 transition-colors">{{ cuenta.nombre }}</a>
+        <span class="text-br-border">/</span>
+        <span class="text-xs text-br-text opacity-70">Nueva operación</span>
+    </div>
+
+    <!-- Saldo actual -->
+    {% with saldo=cuenta.saldo %}
+    <div class="mb-4 px-4 py-3 bg-br-card border border-br-border flex items-center justify-between">
+        <span class="text-xs text-br-text opacity-50">Saldo actual {{ cuenta.nombre }}</span>
+        <span class="font-mono font-bold text-sm
+                     {% if saldo >= 0 %}text-br-text{% else %}text-red-400{% endif %}">
+            {% if saldo >= 0 %}+{% endif %}{{ saldo|floatformat:2 }} {{ cuenta.moneda }}
+        </span>
+    </div>
+    {% endwith %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="bg-br-card border border-br-border divide-y divide-br-border">
+
+            <!-- Tipo -->
+            <div class="px-5 py-4">
+                <label class="block text-xs text-br-text opacity-60 mb-2">Tipo de operación</label>
+                <div class="flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="tipo" value="ingreso"
+                               {% if form.tipo.value == 'ingreso' or not form.tipo.value %}checked{% endif %}
+                               class="sr-only peer">
+                        <div class="text-center py-2 border border-br-border text-xs text-br-text opacity-50
+                                    peer-checked:border-green-500/50 peer-checked:text-green-400 peer-checked:opacity-100
+                                    hover:opacity-80 transition-colors">
+                            Ingreso / Beneficio
+                        </div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="tipo" value="gasto"
+                               {% if form.tipo.value == 'gasto' %}checked{% endif %}
+                               class="sr-only peer">
+                        <div class="text-center py-2 border border-br-border text-xs text-br-text opacity-50
+                                    peer-checked:border-red-500/50 peer-checked:text-red-400 peer-checked:opacity-100
+                                    hover:opacity-80 transition-colors">
+                            Gasto / Egreso
+                        </div>
+                    </label>
+                </div>
+                {% for e in form.tipo.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+
+            <!-- Monto -->
+            <div class="px-5 py-4">
+                <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                    Monto <span class="text-br-accent">*</span>
+                    <span class="opacity-50">({{ cuenta.moneda }})</span>
+                </label>
+                <input type="number" name="monto" value="{{ form.monto.value|default:'' }}"
+                       step="0.01" min="0" required
+                       class="w-full bg-br-bg border border-br-border text-sm text-br-text font-mono px-3 py-2 focus:outline-none focus:border-br-accent transition-colors"
+                       placeholder="0.00">
+                {% for e in form.monto.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+
+            <!-- Descripción -->
+            <div class="px-5 py-4">
+                <label class="block text-xs text-br-text opacity-60 mb-1.5">Descripción</label>
+                <input type="text" name="descripcion" value="{{ form.descripcion.value|default:'' }}"
+                       maxlength="500"
+                       placeholder="ej: Pago de alquiler"
+                       class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                {% for e in form.descripcion.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+
+            <!-- Fecha -->
+            <div class="px-5 py-4">
+                <label class="block text-xs text-br-text opacity-60 mb-1.5">
+                    Fecha <span class="text-br-accent">*</span>
+                </label>
+                <input type="date" name="fecha" value="{{ form.fecha.value|default:'' }}" required
+                       class="w-full bg-br-bg border border-br-border text-sm text-br-text px-3 py-2 focus:outline-none focus:border-br-accent transition-colors">
+                {% for e in form.fecha.errors %}<p class="text-xs text-red-400 mt-1">{{ e }}</p>{% endfor %}
+            </div>
+
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="mt-3 text-xs text-red-400">{{ form.non_field_errors|join:", " }}</div>
+        {% endif %}
+
+        <div class="flex gap-3 mt-4">
+            <button type="submit"
+                    class="px-6 py-2 bg-br-accent text-[#080806] text-sm font-semibold hover:bg-br-accent-hover transition-colors">
+                Registrar
+            </button>
+            <a href="{% url 'owner_account_detail' slug=tienda.slug pk=cuenta.pk %}"
+               class="px-4 py-2 text-sm text-br-text opacity-60 hover:opacity-100 transition-opacity">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

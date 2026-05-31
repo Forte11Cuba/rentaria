@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rentaria{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'br-bg':     '#1a1b1e',
+                        'br-card':   '#212226',
+                        'br-border': '#2c2d32',
+                        'br-input':  '#17181c',
+                        'br-text':   '#c9cdd4',
+                        'br-muted':  '#6b7280',
+                        'br-accent': '#f7931a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#1a1b1e] text-[#c9cdd4] min-h-screen flex items-center justify-center px-4">
+
+    <div class="w-full max-w-md">
+
+        <div class="text-center mb-8">
+            <span class="text-[#f7931a] font-black text-2xl tracking-widest">RENTARIA</span>
+        </div>
+
+        <div class="bg-[#212226] border border-[#2c2d32] p-8">
+            {% block card %}{% endblock %}
+        </div>
+
+        {% block below_card %}{% endblock %}
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+<div id="status-area" class="border border-red-500/30 bg-red-500/10 px-5 py-4 text-center">
+  <p class="text-red-400 font-title uppercase tracking-widest text-sm font-bold">Pago expirado</p>
+  <p class="text-white/40 text-xs mt-1">El tiempo para completar el pago ha vencido.</p>
+  <a href="{% url 'reservas:step1_dates' slug=orden.tienda.slug %}"
+     class="inline-block mt-3 text-[#f7931a] text-xs hover:underline">
+    Hacer una nueva reserva →
+  </a>
+</div>

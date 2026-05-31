@@ -1,0 +1,100 @@
+{% extends "admin_panel/base_dueno.html" %}
+
+{% block page_title %}Órdenes{% endblock %}
+
+{% block content %}
+<div class="p-6">
+
+  <!-- Filtros -->
+  <div class="flex gap-1 mb-6 border-b border-br-border">
+    {% for label, val in estado_tabs %}
+    <a href="{% url 'owner_orders' slug=tienda.slug %}{% if val %}?estado={{ val }}{% endif %}"
+       class="px-4 py-2 text-sm border-b-2 -mb-px transition-colors
+              {% if estado_filtro == val %}border-br-accent text-br-accent{% else %}border-transparent text-br-text opacity-50 hover:opacity-100{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj %}
+  <div class="bg-br-card border border-br-border overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-br-border">
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal">ID</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal">Fecha</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal hidden md:table-cell">Período</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal hidden lg:table-cell">Pago</th>
+          <th class="text-right px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal">Total</th>
+          <th class="text-center px-4 py-3 text-xs uppercase tracking-widest text-br-text opacity-40 font-normal">Estado</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-br-border">
+        {% for orden in page_obj %}
+        <tr class="hover:bg-br-bg transition-colors">
+          <td class="px-4 py-3 font-mono text-br-text text-xs">{{ orden.id }}</td>
+          <td class="px-4 py-3 text-br-text opacity-60 text-xs">{{ orden.created_at|date:"d/m/Y" }}</td>
+          <td class="px-4 py-3 text-br-text opacity-60 text-xs hidden md:table-cell">
+            {{ orden.fecha_inicio|date:"d/m" }} → {{ orden.fecha_fin|date:"d/m" }}
+            <span class="opacity-50"> · {{ orden.dias }}d</span>
+          </td>
+          <td class="px-4 py-3 hidden lg:table-cell">
+            {% if orden.metodo_pago == 'bitcoin_btcpay' %}
+            <span class="text-br-accent text-xs">₿ Bitcoin</span>
+            {% else %}
+            <span class="text-green-400 text-xs">💬 Efectivo</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right font-mono text-br-accent font-bold">${{ orden.monto_total_usd }}</td>
+          <td class="px-4 py-3 text-center">
+            {% if orden.estado == 'confirmada' %}
+            <span class="text-xs border border-green-400/40 text-green-400 px-2 py-0.5">Confirmada</span>
+            {% elif orden.estado == 'pendiente' %}
+            <span class="text-xs border border-yellow-400/40 text-yellow-400 px-2 py-0.5">Pendiente</span>
+            {% else %}
+            <span class="text-xs border border-br-border text-br-text opacity-40 px-2 py-0.5">Cancelada</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <a href="{% url 'owner_order_detail' slug=tienda.slug orden_id=orden.id %}"
+               class="text-xs text-br-accent hover:underline">Ver →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  {% if page_obj.has_other_pages %}
+  <div class="flex items-center justify-between mt-4">
+    <p class="text-xs text-br-text opacity-40">
+      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+      · {{ page_obj.paginator.count }} orden{{ page_obj.paginator.count|pluralize:"es" }}
+    </p>
+    <div class="flex gap-1">
+      {% if page_obj.has_previous %}
+      <a href="?{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         class="px-3 py-1.5 text-xs border border-br-border text-br-text opacity-60 hover:opacity-100 transition-colors">
+        ← Anterior
+      </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+      <a href="?{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ page_obj.next_page_number }}"
+         class="px-3 py-1.5 text-xs border border-br-border text-br-text opacity-60 hover:opacity-100 transition-colors">
+        Siguiente →
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="bg-br-card border border-br-border p-12 text-center">
+    <p class="text-br-text opacity-30">No hay órdenes{% if estado_filtro %} con estado "{{ estado_filtro }}"{% endif %}.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
