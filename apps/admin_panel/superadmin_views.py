@@ -27,7 +27,7 @@ def usuarios(request):
     pendientes = Usuario.objects.filter(rol='dueno', estado='pendiente').order_by('-date_joined')
     activos_qs = Usuario.objects.filter(rol='dueno', estado='activo').order_by('username')
     activos_page = Paginator(activos_qs, 50).get_page(request.GET.get('page', 1))
-    return render(request, 'superadmin/usuarios.html', {
+    return render(request, 'superadmin/users.html', {
         'pendientes': pendientes,
         'activos': activos_page,
     })
@@ -75,7 +75,7 @@ def usuario_cambiar_password(request, pk):
             return redirect('superadmin_users')
     else:
         form = SetPasswordForm(usuario)
-    return render(request, 'superadmin/usuario_cambiar_password.html', {
+    return render(request, 'superadmin/user_change_password.html', {
         'form': form,
         'usuario': usuario,
     })
@@ -83,7 +83,7 @@ def usuario_cambiar_password(request, pk):
 
 def tiendas(request):
     todas = Tienda.objects.select_related('dueno').order_by('-created_at')
-    return render(request, 'superadmin/tiendas.html', {'tiendas': todas})
+    return render(request, 'superadmin/shops.html', {'tiendas': todas})
 
 
 def tienda_crear(request):
@@ -95,7 +95,7 @@ def tienda_crear(request):
             return redirect('superadmin_shops')
     else:
         form = TiendaSuperadminForm()
-    return render(request, 'superadmin/tienda_crear.html', {'form': form})
+    return render(request, 'superadmin/shop_create.html', {'form': form})
 
 
 def ordenes(request):
@@ -117,4 +117,4 @@ def ordenes(request):
         'filtro_estado': filtro_estado,
         'estados': Orden.ESTADO_CHOICES,
     }
-    return render(request, 'superadmin/ordenes.html', context)
+    return render(request, 'superadmin/orders.html', context)
