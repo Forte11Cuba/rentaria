@@ -35,8 +35,8 @@
                 <label class="block text-xs text-br-text opacity-60 mb-2">Tipo de operación</label>
                 <div class="flex gap-2">
                     <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="tipo" value="ingreso"
-                               {% if form.tipo.value == 'ingreso' or not form.tipo.value %}checked{% endif %}
+                        <input type="radio" name="tipo" value="income"
+                               {% if form.tipo.value == 'income' or not form.tipo.value %}checked{% endif %}
                                class="sr-only peer">
                         <div class="text-center py-2 border border-br-border text-xs text-br-text opacity-50
                                     peer-checked:border-green-500/50 peer-checked:text-green-400 peer-checked:opacity-100
@@ -45,8 +45,8 @@
                         </div>
                     </label>
                     <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="tipo" value="gasto"
-                               {% if form.tipo.value == 'gasto' %}checked{% endif %}
+                        <input type="radio" name="tipo" value="expense"
+                               {% if form.tipo.value == 'expense' %}checked{% endif %}
                                class="sr-only peer">
                         <div class="text-center py-2 border border-br-border text-xs text-br-text opacity-50
                                     peer-checked:border-red-500/50 peer-checked:text-red-400 peer-checked:opacity-100

@@ -30,12 +30,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Rentaria apps
-    'apps.usuarios',
-    'apps.tiendas',
-    'apps.motos',
-    'apps.reservas',
-    'apps.formularios',
-    'apps.cuentas',
+    'apps.users',
+    'apps.shops',
+    'apps.units',
+    'apps.bookings',
+    'apps.forms',
+    'apps.accounts',
     'apps.admin_panel',
 ]
 
@@ -47,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.usuarios.middleware.RentariaAuthMiddleware',
+    'apps.users.middleware.RentariaAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -84,7 +84,7 @@ DATABASES = {
 }
 
 # Custom user model
-AUTH_USER_MODEL = 'usuarios.Usuario'
+AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -118,7 +118,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
 # Email backend — Resend for production, console for local dev without API key
-EMAIL_BACKEND = 'apps.usuarios.email_backend.ResendEmailBackend'
+EMAIL_BACKEND = 'apps.users.email_backend.ResendEmailBackend'
 DEFAULT_FROM_EMAIL = f'{BRAND_NAME} <no-reply@{BASE_DOMAIN}>'
 
 # External services (loaded from env)

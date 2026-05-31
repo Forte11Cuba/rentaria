@@ -2,36 +2,36 @@ from django import forms
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 
-from apps.cuentas.models import Cuenta, Operacion
-from apps.formularios.models import CampoFormulario, PlantillaContrato
-from apps.motos.models import ModeloMoto, Moto, PlanPrecio
-from apps.tiendas.models import Tienda
-from apps.usuarios.models import Usuario
+from apps.accounts.models import Account, Operation
+from apps.forms.models import FormField, ContractTemplate
+from apps.units.models import UnitModel, Unit, PricePlan
+from apps.shops.models import Shop
+from apps.users.models import User
 
 
-class CambiarEmailForm(forms.ModelForm):
+class ChangeEmailForm(forms.ModelForm):
     class Meta:
-        model = Usuario
+        model = User
         fields = ['email']
         labels = {'email': 'Correo electrónico'}
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()
-        qs = Usuario.objects.filter(email__iexact=email).exclude(pk=self.instance.pk)
+        qs = User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk)
         if qs.exists():
             raise forms.ValidationError('Este correo ya está en uso por otro usuario.')
         return email
 
 
-class TiendaSuperadminForm(forms.ModelForm):
+class ShopSuperadminForm(forms.ModelForm):
     class Meta:
-        model = Tienda
+        model = Shop
         fields = ['nombre', 'slug', 'dueno']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['dueno'].queryset = Usuario.objects.filter(
-            rol='dueno', estado='activo'
+        self.fields['dueno'].queryset = User.objects.filter(
+            rol='owner', estado='active'
         ).order_by('username')
         self.fields['dueno'].label_from_instance = lambda u: f'{u.username} — {u.email}'
         self.fields['nombre'].label = 'Nombre de la tienda'
@@ -39,9 +39,9 @@ class TiendaSuperadminForm(forms.ModelForm):
         self.fields['dueno'].label = 'Dueño'
 
 
-class TiendaDuenoForm(forms.ModelForm):
+class ShopOwnerForm(forms.ModelForm):
     class Meta:
-        model = Tienda
+        model = Shop
         fields = [
             'nombre', 'slug', 'logo',
             'whatsapp_activo', 'whatsapp_numero',
@@ -65,9 +65,9 @@ class TiendaDuenoForm(forms.ModelForm):
         self.fields['logo'].required = False
 
 
-class ModeloMotoForm(forms.ModelForm):
+class UnitModelForm(forms.ModelForm):
     class Meta:
-        model = ModeloMoto
+        model = UnitModel
         fields = ['marca', 'modelo', 'descripcion', 'min_dias_alquiler', 'imagen', 'activo']
         labels = {
             'marca': 'Marca',
@@ -84,9 +84,9 @@ class ModeloMotoForm(forms.ModelForm):
         self.fields['imagen'].required = False
 
 
-class PlanPrecioForm(forms.ModelForm):
+class PricePlanForm(forms.ModelForm):
     class Meta:
-        model = PlanPrecio
+        model = PricePlan
         fields = ['dias_max', 'precio_dia']
         labels = {
             'dias_max': 'Hasta (días)',
@@ -98,9 +98,9 @@ class PlanPrecioForm(forms.ModelForm):
         self.fields['dias_max'].required = False
 
 
-PlanPrecioFormSet = inlineformset_factory(
-    ModeloMoto, PlanPrecio,
-    form=PlanPrecioForm,
+PricePlanFormSet = inlineformset_factory(
+    UnitModel, PricePlan,
+    form=PricePlanForm,
     extra=1,
     can_delete=True,
     min_num=0,
@@ -108,9 +108,9 @@ PlanPrecioFormSet = inlineformset_factory(
 )
 
 
-class MotoForm(forms.ModelForm):
+class UnitForm(forms.ModelForm):
     class Meta:
-        model = Moto
+        model = Unit
         fields = ['chapa', 'modelo']
         labels = {
             'chapa': 'Chapa / Placa',
@@ -120,14 +120,14 @@ class MotoForm(forms.ModelForm):
     def __init__(self, *args, tienda=None, **kwargs):
         super().__init__(*args, **kwargs)
         if tienda is not None:
-            self.fields['modelo'].queryset = ModeloMoto.objects.filter(
+            self.fields['modelo'].queryset = UnitModel.objects.filter(
                 tienda=tienda, activo=True
             ).order_by('marca', 'modelo')
 
 
-class CampoFormularioForm(forms.ModelForm):
+class FormFieldForm(forms.ModelForm):
     class Meta:
-        model = CampoFormulario
+        model = FormField
         fields = ['etiqueta', 'variable', 'tipo', 'requerido', 'es_email_cliente']
         labels = {
             'etiqueta': 'Etiqueta (texto visible al cliente)',
@@ -153,7 +153,7 @@ class CampoFormularioForm(forms.ModelForm):
         cleaned = super().clean()
         variable = cleaned.get('variable')
         if self.tienda and variable:
-            qs = CampoFormulario.objects.filter(tienda=self.tienda, variable=variable)
+            qs = FormField.objects.filter(tienda=self.tienda, variable=variable)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
@@ -161,18 +161,18 @@ class CampoFormularioForm(forms.ModelForm):
         return cleaned
 
 
-class PlantillaContratoForm(forms.ModelForm):
+class ContractTemplateForm(forms.ModelForm):
     class Meta:
-        model = PlantillaContrato
+        model = ContractTemplate
         fields = ['contenido_md']
         widgets = {
             'contenido_md': forms.Textarea(),
         }
 
 
-class CuentaForm(forms.ModelForm):
+class AccountForm(forms.ModelForm):
     class Meta:
-        model = Cuenta
+        model = Account
         fields = ['nombre', 'moneda']
         labels = {
             'nombre': 'Nombre de la cuenta',
@@ -180,7 +180,7 @@ class CuentaForm(forms.ModelForm):
         }
 
 
-class OperacionForm(forms.Form):
+class OperationForm(forms.Form):
     TIPO_CHOICES = [('ingreso', 'Ingreso / Beneficio'), ('gasto', 'Gasto / Egreso')]
     tipo = forms.ChoiceField(choices=TIPO_CHOICES, label='Tipo')
     descripcion = forms.CharField(max_length=500, required=False, label='Descripción')
@@ -194,8 +194,8 @@ class OperacionForm(forms.Form):
     )
 
 
-class TransferenciaForm(forms.Form):
-    cuenta_origen = forms.ModelChoiceField(queryset=Cuenta.objects.none(), label='Cuenta origen')
+class TransferForm(forms.Form):
+    cuenta_origen = forms.ModelChoiceField(queryset=Account.objects.none(), label='Cuenta origen')
     monto_origen = forms.DecimalField(
         max_digits=14, decimal_places=2, min_value=0,
         label='Monto a debitar',
@@ -205,7 +205,7 @@ class TransferenciaForm(forms.Form):
         label='Tasa de cambio (unidades destino / unidad origen)',
         initial=1,
     )
-    cuenta_destino = forms.ModelChoiceField(queryset=Cuenta.objects.none(), label='Cuenta destino')
+    cuenta_destino = forms.ModelChoiceField(queryset=Account.objects.none(), label='Cuenta destino')
     monto_destino = forms.DecimalField(
         max_digits=14, decimal_places=2, min_value=0, required=False,
         label='Monto a acreditar (opcional — se calcula automáticamente)',
@@ -219,7 +219,7 @@ class TransferenciaForm(forms.Form):
     def __init__(self, *args, tienda=None, **kwargs):
         super().__init__(*args, **kwargs)
         if tienda:
-            qs = Cuenta.objects.filter(tienda=tienda, activa=True).order_by('nombre')
+            qs = Account.objects.filter(tienda=tienda, activa=True).order_by('nombre')
             self.fields['cuenta_origen'].queryset = qs
             self.fields['cuenta_destino'].queryset = qs
 

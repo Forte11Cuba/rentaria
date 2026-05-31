@@ -28,11 +28,11 @@ def _from_platform() -> str:
     return f'{settings.BRAND_NAME} <no-reply@{settings.BASE_DOMAIN}>'
 
 
-def _from_tienda(tienda_nombre: str) -> str:
+def _from_shop(tienda_nombre: str) -> str:
     return f'{tienda_nombre} <no-reply@{settings.BASE_DOMAIN}>'
 
 
-def _generar_ics(orden) -> bytes:
+def _generate_ics(orden) -> bytes:
     from datetime import datetime
     from icalendar import Calendar, Event
     cal = Calendar()
@@ -52,7 +52,7 @@ def _generar_ics(orden) -> bytes:
     return cal.to_ical()
 
 
-def _tabla_orden(orden) -> str:
+def _order_table(orden) -> str:
     motos = ', '.join(
         f"{l.modelo.marca} {l.modelo.modelo}"
         for l in orden.lineas.select_related('modelo').all()
@@ -67,7 +67,7 @@ def _tabla_orden(orden) -> str:
     return f'''
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
       <tr>
-        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Orden</td>
+        <td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #2c2d32">Order</td>
         <td style="padding:8px 0;color:#e5e5e5;border-bottom:1px solid #2c2d32;text-align:right;font-family:monospace">{orden.id}</td>
       </tr>
       <tr>
@@ -110,7 +110,7 @@ def _base_html(tienda_nombre, titulo, cuerpo) -> str:
 
 # ── Emails de plataforma ───────────────────────────────────────────────────────
 
-def enviar_cuenta_aprobada(usuario) -> bool:
+def send_account_approved(usuario) -> bool:
     return _send({
         'from': _from_platform(),
         'to': [usuario.email],
@@ -125,7 +125,7 @@ def enviar_cuenta_aprobada(usuario) -> bool:
     })
 
 
-def enviar_cuenta_rechazada(usuario) -> bool:
+def send_account_rejected(usuario) -> bool:
     return _send({
         'from': _from_platform(),
         'to': [usuario.email],
@@ -139,16 +139,16 @@ def enviar_cuenta_rechazada(usuario) -> bool:
 
 # ── Emails de reservas ─────────────────────────────────────────────────────────
 
-def enviar_confirmacion_cliente(orden) -> bool:
+def send_customer_confirmation(orden) -> bool:
     email_resp = orden.respuestas.filter(campo__es_email_cliente=True).first()
     if not email_resp:
         return False
 
-    ics_data = _generar_ics(orden)
-    tabla = _tabla_orden(orden)
+    ics_data = _generate_ics(orden)
+    tabla = _order_table(orden)
 
     return _send({
-        'from': _from_tienda(orden.tienda.nombre),
+        'from': _from_shop(orden.tienda.nombre),
         'to': [email_resp.valor],
         'subject': f'Reserva confirmada #{orden.id} — {orden.tienda.nombre}',
         'html': _base_html(orden.tienda.nombre, '¡Reserva confirmada!', f'''
@@ -160,9 +160,9 @@ def enviar_confirmacion_cliente(orden) -> bool:
     })
 
 
-def enviar_nueva_orden_dueno(orden) -> bool:
+def send_new_order_owner(orden) -> bool:
     metodo = 'Bitcoin (BTCPay)' if orden.metodo_pago == 'bitcoin_btcpay' else 'Efectivo'
-    tabla = _tabla_orden(orden)
+    tabla = _order_table(orden)
 
     return _send({
         'from': _from_platform(),
@@ -178,14 +178,14 @@ def enviar_nueva_orden_dueno(orden) -> bool:
     })
 
 
-def enviar_orden_confirmada_dueno(orden) -> bool:
-    tabla = _tabla_orden(orden)
+def send_order_confirmed_owner(orden) -> bool:
+    tabla = _order_table(orden)
 
     return _send({
         'from': _from_platform(),
         'to': [orden.tienda.dueno.email],
-        'subject': f'Orden confirmada #{orden.id} — {orden.tienda.nombre}',
-        'html': _base_html(orden.tienda.nombre, 'Orden confirmada', f'''
+        'subject': f'Order confirmada #{orden.id} — {orden.tienda.nombre}',
+        'html': _base_html(orden.tienda.nombre, 'Order confirmada', f'''
             {tabla}
             <a href="{settings.APP_URL}/dashboard/"
                style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
