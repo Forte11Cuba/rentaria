@@ -82,7 +82,7 @@ def step1_fechas(request, slug):
             errores['hora_fin'] = 'Hora inválida.'
 
         if errores:
-            return render(request, 'reservas/step1_fechas.html', {
+            return render(request, 'bookings/step1_dates.html', {
                 'tienda': tienda, 'today': today.isoformat(),
                 'errores': errores, 'fi': fi_str, 'ff': ff_str,
                 'hi': hi_str, 'hf': hf_str, 'horas': HORAS,
@@ -99,7 +99,7 @@ def step1_fechas(request, slug):
         }
         return redirect('reservas:step2_models', slug=slug)
 
-    return render(request, 'reservas/step1_fechas.html', {
+    return render(request, 'bookings/step1_dates.html', {
         'tienda': tienda, 'today': today.isoformat(),
         'horas': HORAS, 'hi': '09:00', 'hf': '18:00',
     })
@@ -160,7 +160,7 @@ def step2_modelos(request, slug):
                 carrito_valido.append({'modelo_id': mid, 'cantidad': cant})
 
         if not carrito_valido:
-            return render(request, 'reservas/step2_modelos.html', {
+            return render(request, 'bookings/step2_models.html', {
                 'tienda': tienda, 'modelos_disponibles': modelos_disponibles,
                 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'dias': dias,
                 'error': 'Selecciona al menos una moto.',
@@ -172,7 +172,7 @@ def step2_modelos(request, slug):
         request.session.modified = True
         return redirect('reservas:step3_form', slug=slug)
 
-    return render(request, 'reservas/step2_modelos.html', {
+    return render(request, 'bookings/step2_models.html', {
         'tienda': tienda, 'modelos_disponibles': modelos_disponibles,
         'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'dias': dias,
     })
@@ -227,7 +227,7 @@ def step3_formulario(request, slug):
             valores[campo.variable] = v
 
         if errores:
-            return render(request, 'reservas/step3_formulario.html', {
+            return render(request, 'bookings/step3_form.html', {
                 'tienda': tienda,
                 'campos_list': _campos_con_valores(campos, valores, errores),
             })
@@ -238,7 +238,7 @@ def step3_formulario(request, slug):
         return redirect('reservas:step4_payment', slug=slug)
 
     valores = sesion.get('respuestas') or {}
-    return render(request, 'reservas/step3_formulario.html', {
+    return render(request, 'bookings/step3_form.html', {
         'tienda': tienda,
         'campos_list': _campos_con_valores(campos, valores),
     })
@@ -283,7 +283,7 @@ def step4_pago(request, slug):
             'cargos': cargos_item,
         })
 
-    return render(request, 'reservas/step4_pago.html', {
+    return render(request, 'bookings/step4_payment.html', {
         'tienda': tienda,
         'carrito_detalle': carrito_detalle,
         'monto_total': monto_total,
@@ -422,7 +422,7 @@ def reservar_crear(request, slug):
         ]
         lineas_display.append(data)
 
-    return render(request, 'reservas/whatsapp_pendiente.html', {
+    return render(request, 'bookings/whatsapp_pending.html', {
         'tienda': tienda, 'orden': orden, 'whatsapp_link': link_wa,
         'lineas_display': lineas_display, 'dias': dias,
     })
@@ -436,7 +436,7 @@ def pago_bitcoin(request, orden_id):
     if orden.estado == 'confirmada':
         return redirect('reservas:confirmation', orden_id=orden_id)
     if orden.estado == 'cancelada':
-        return render(request, 'reservas/pago_expirado.html', {
+        return render(request, 'bookings/payment_expired.html', {
             'orden': orden, 'tienda': orden.tienda,
         })
 
@@ -451,7 +451,7 @@ def pago_bitcoin(request, orden_id):
             elif status == 'Expired':
                 orden.estado = 'cancelada'
                 orden.save(update_fields=['estado'])
-                return render(request, 'reservas/pago_expirado.html', {
+                return render(request, 'bookings/payment_expired.html', {
                     'orden': orden, 'tienda': orden.tienda,
                 })
         except Exception:
@@ -464,7 +464,7 @@ def pago_bitcoin(request, orden_id):
 
     expiry_ts = int((orden.created_at.timestamp() + 30 * 60) * 1000)
 
-    return render(request, 'reservas/pago_bitcoin.html', {
+    return render(request, 'bookings/payment_bitcoin.html', {
         'orden': orden,
         'tienda': tienda,
         'checkout_url': checkout_url,
@@ -482,7 +482,7 @@ def pago_status(request, orden_id):
         return resp
 
     if orden.estado == 'cancelada':
-        return render(request, 'reservas/fragments/pago_expired.html', {'orden': orden})
+        return render(request, 'bookings/fragments/payment_expired.html', {'orden': orden})
 
     if orden.payment_id:
         try:
@@ -496,11 +496,11 @@ def pago_status(request, orden_id):
             elif status == 'Expired':
                 orden.estado = 'cancelada'
                 orden.save(update_fields=['estado'])
-                return render(request, 'reservas/fragments/pago_expired.html', {'orden': orden})
+                return render(request, 'bookings/fragments/payment_expired.html', {'orden': orden})
         except Exception:
             logger.exception('pago_status: error verificando BTCPay para orden=%s', orden_id)
 
-    return render(request, 'reservas/fragments/pago_pending.html', {
+    return render(request, 'bookings/fragments/payment_pending.html', {
         'orden': orden,
         'status_url': reverse('reservas:payment_status', args=[orden_id]),
     })
@@ -571,7 +571,7 @@ def confirmacion(request, orden_id):
 
     pendiente_btc = (orden.estado == 'pendiente' and orden.metodo_pago == 'bitcoin_btcpay')
     tiene_contrato = bool(orden.contrato_pdf)
-    return render(request, 'reservas/confirmacion.html', {
+    return render(request, 'bookings/confirmation.html', {
         'orden': orden,
         'tienda': orden.tienda,
         'lineas': orden.lineas.select_related('modelo', 'moto').all(),

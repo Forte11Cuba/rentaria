@@ -52,7 +52,7 @@ def mis_tiendas(request):
     if guard:
         return guard
     tiendas = Tienda.objects.filter(dueno=request.user).order_by('nombre')
-    return render(request, 'admin_panel/mis_tiendas.html', {'tiendas': tiendas})
+    return render(request, 'admin_panel/my_shops.html', {'tiendas': tiendas})
 
 
 def cuenta(request):
@@ -81,7 +81,7 @@ def cuenta(request):
         email_form = CambiarEmailForm(instance=request.user)
         password_form = PasswordChangeForm(request.user)
 
-    return render(request, 'admin_panel/cuenta.html', {
+    return render(request, 'admin_panel/settings.html', {
         'email_form': email_form,
         'password_form': password_form,
     })
@@ -101,7 +101,7 @@ def tienda_crear(request):
             return redirect('owner_inventory', slug=tienda.slug)
     else:
         form = TiendaDuenoForm()
-    return render(request, 'admin_panel/tienda_crear.html', {'form': form})
+    return render(request, 'admin_panel/shop_create.html', {'form': form})
 
 
 # ── Inventario ─────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ def inventario(request, slug):
     modelos = ModeloMoto.objects.filter(tienda=tienda).prefetch_related('motos', 'planes')
     ctx = _tienda_ctx(tienda, request)
     ctx['modelos'] = modelos
-    return render(request, 'admin_panel/inventario/lista.html', ctx)
+    return render(request, 'admin_panel/inventory/list.html', ctx)
 
 
 def _procesar_planes_post(request, modelo):
@@ -194,7 +194,7 @@ def modelo_crear(request, slug):
         form = ModeloMotoForm()
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'planes': [], 'cargos': [], 'accion': 'Crear modelo'})
-    return render(request, 'admin_panel/inventario/modelo_form.html', ctx)
+    return render(request, 'admin_panel/inventory/model_form.html', ctx)
 
 
 def modelo_editar(request, slug, pk):
@@ -218,7 +218,7 @@ def modelo_editar(request, slug, pk):
         'modelo': modelo,
         'accion': 'Editar modelo',
     })
-    return render(request, 'admin_panel/inventario/modelo_form.html', ctx)
+    return render(request, 'admin_panel/inventory/model_form.html', ctx)
 
 
 @require_POST
@@ -297,7 +297,7 @@ def moto_agregar(request, slug):
         form = MotoForm(tienda=tienda)
     ctx = _tienda_ctx(tienda, request)
     ctx['form'] = form
-    return render(request, 'admin_panel/inventario/moto_form.html', ctx)
+    return render(request, 'admin_panel/inventory/unit_form.html', ctx)
 
 
 @require_POST
@@ -330,7 +330,7 @@ def formulario(request, slug):
     campos = CampoFormulario.objects.filter(tienda=tienda).order_by('orden')
     ctx = _tienda_ctx(tienda, request)
     ctx['campos'] = campos
-    return render(request, 'admin_panel/formulario/lista.html', ctx)
+    return render(request, 'admin_panel/form/list.html', ctx)
 
 
 def campo_crear(request, slug):
@@ -348,7 +348,7 @@ def campo_crear(request, slug):
         form = CampoFormularioForm(tienda=tienda)
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'accion': 'Agregar campo'})
-    return render(request, 'admin_panel/formulario/campo_form.html', ctx)
+    return render(request, 'admin_panel/form/field_form.html', ctx)
 
 
 def campo_editar(request, slug, pk):
@@ -364,7 +364,7 @@ def campo_editar(request, slug, pk):
         form = CampoFormularioForm(instance=campo, tienda=tienda)
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'campo': campo, 'accion': 'Editar campo'})
-    return render(request, 'admin_panel/formulario/campo_form.html', ctx)
+    return render(request, 'admin_panel/form/field_form.html', ctx)
 
 
 @require_POST
@@ -408,7 +408,7 @@ def contrato(request, slug):
     form = PlantillaContratoForm(instance=plantilla)
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'plantilla': plantilla, 'campos': campos, 'system_vars': _SYSTEM_VARS})
-    return render(request, 'admin_panel/contrato/editor.html', ctx)
+    return render(request, 'admin_panel/contract/editor.html', ctx)
 
 
 @require_POST
@@ -425,7 +425,7 @@ def contrato_guardar(request, slug):
     campos = CampoFormulario.objects.filter(tienda=tienda, activo=True).order_by('orden')
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'plantilla': plantilla, 'campos': campos, 'system_vars': _SYSTEM_VARS})
-    return render(request, 'admin_panel/contrato/editor.html', ctx)
+    return render(request, 'admin_panel/contract/editor.html', ctx)
 
 
 # ── Cuentas ────────────────────────────────────────────────────────────────────
@@ -435,7 +435,7 @@ def cuentas_lista(request, slug):
     cuentas = Cuenta.objects.filter(tienda=tienda).order_by('nombre')
     ctx = _tienda_ctx(tienda, request)
     ctx['cuentas'] = cuentas
-    return render(request, 'admin_panel/cuentas/lista.html', ctx)
+    return render(request, 'admin_panel/accounts/list.html', ctx)
 
 
 def cuenta_crear(request, slug):
@@ -452,7 +452,7 @@ def cuenta_crear(request, slug):
         form = CuentaForm()
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'accion': 'Nueva cuenta'})
-    return render(request, 'admin_panel/cuentas/cuenta_form.html', ctx)
+    return render(request, 'admin_panel/accounts/account_form.html', ctx)
 
 
 def cuenta_editar(request, slug, pk):
@@ -468,7 +468,7 @@ def cuenta_editar(request, slug, pk):
         form = CuentaForm(instance=cuenta)
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'cuenta': cuenta, 'accion': 'Editar cuenta'})
-    return render(request, 'admin_panel/cuentas/cuenta_form.html', ctx)
+    return render(request, 'admin_panel/accounts/account_form.html', ctx)
 
 
 def cuenta_detalle(request, slug, pk):
@@ -482,7 +482,7 @@ def cuenta_detalle(request, slug, pk):
     )
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'cuenta': cuenta, 'operaciones': operaciones})
-    return render(request, 'admin_panel/cuentas/detalle.html', ctx)
+    return render(request, 'admin_panel/accounts/detail.html', ctx)
 
 
 def operacion_nueva(request, slug, pk):
@@ -508,7 +508,7 @@ def operacion_nueva(request, slug, pk):
         form = OperacionForm(initial={'fecha': date.today()})
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'form': form, 'cuenta': cuenta})
-    return render(request, 'admin_panel/cuentas/operacion_form.html', ctx)
+    return render(request, 'admin_panel/accounts/operation_form.html', ctx)
 
 
 @require_POST
@@ -558,7 +558,7 @@ def transferencia_nueva(request, slug):
         form = TransferenciaForm(tienda=tienda, initial={'fecha': date.today(), 'tasa_cambio': 1})
     ctx = _tienda_ctx(tienda, request)
     ctx['form'] = form
-    return render(request, 'admin_panel/cuentas/transferencia_form.html', ctx)
+    return render(request, 'admin_panel/accounts/transfer_form.html', ctx)
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -624,7 +624,7 @@ def ordenes_lista(request, slug):
     estado_tabs = [('Todas', ''), ('Pendientes', 'pendiente'), ('Confirmadas', 'confirmada'), ('Canceladas', 'cancelada')]
     ctx = _tienda_ctx(tienda, request)
     ctx.update({'page_obj': page_obj, 'estado_filtro': estado, 'estado_tabs': estado_tabs})
-    return render(request, 'admin_panel/ordenes/lista.html', ctx)
+    return render(request, 'admin_panel/orders/list.html', ctx)
 
 
 def orden_detalle(request, slug, orden_id):
@@ -649,7 +649,7 @@ def orden_detalle(request, slug, orden_id):
         'lineas_con_chapas': lineas_con_chapas,
         'respuestas': respuestas,
     })
-    return render(request, 'admin_panel/ordenes/detalle.html', ctx)
+    return render(request, 'admin_panel/orders/detail.html', ctx)
 
 
 @require_POST
@@ -719,7 +719,7 @@ def configuracion(request, slug):
         form = TiendaDuenoForm(instance=tienda)
     ctx = _tienda_ctx(tienda, request)
     ctx['form'] = form
-    return render(request, 'admin_panel/configuracion.html', ctx)
+    return render(request, 'admin_panel/shop_settings.html', ctx)
 
 
 # ── Calendario ─────────────────────────────────────────────────────────────────
@@ -730,7 +730,7 @@ def calendario(request, slug):
         return guard
     tienda = _tienda_del_dueno(slug, request)
     ctx = _tienda_ctx(tienda, request)
-    return render(request, 'admin_panel/calendario.html', ctx)
+    return render(request, 'admin_panel/calendar.html', ctx)
 
 
 def calendario_eventos(request, slug):
@@ -834,7 +834,7 @@ def calendario_dia(request, slug, dia):
         key=lambda x: x['dias_restantes'],
     )
 
-    return render(request, 'admin_panel/calendario_dia.html', {
+    return render(request, 'admin_panel/calendar_day.html', {
         'dia': dia_date,
         'tienda': tienda,
         'entregas': entregas,

@@ -36,11 +36,11 @@ def registro(request):
             return redirect('pending')
     else:
         form = RegistroForm()
-    return render(request, 'auth/registro.html', {'form': form})
+    return render(request, 'auth/register.html', {'form': form})
 
 
 def espera(request):
-    return render(request, 'auth/espera.html')
+    return render(request, 'auth/pending.html')
 
 
 def logout_view(request):
