@@ -4,28 +4,28 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.reservas.models import Orden
-from apps.tiendas.models import Tienda
-from apps.usuarios.models import Usuario
-from services.email import enviar_cuenta_aprobada, enviar_cuenta_rechazada
+from apps.bookings.models import Order
+from apps.shops.models import Shop
+from apps.users.models import User
+from services.email import send_account_approved, send_account_rejected
 
-from .forms import TiendaSuperadminForm
+from .forms import ShopSuperadminForm
 
 
 def dashboard(request):
     context = {
-        'total_pendientes': Usuario.objects.filter(rol='dueno', estado='pendiente').count(),
-        'total_activos': Usuario.objects.filter(rol='dueno', estado='activo').count(),
-        'total_tiendas': Tienda.objects.count(),
-        'total_ordenes': Orden.objects.count(),
-        'ordenes_confirmadas': Orden.objects.filter(estado='confirmada').count(),
+        'total_pendientes': User.objects.filter(rol='owner', estado='pending').count(),
+        'total_activos': User.objects.filter(rol='owner', estado='active').count(),
+        'total_tiendas': Shop.objects.count(),
+        'total_ordenes': Order.objects.count(),
+        'ordenes_confirmadas': Order.objects.filter(estado='confirmed').count(),
     }
     return render(request, 'superadmin/dashboard.html', context)
 
 
 def users(request):
-    pendientes = Usuario.objects.filter(rol='dueno', estado='pendiente').order_by('-date_joined')
-    activos_qs = Usuario.objects.filter(rol='dueno', estado='activo').order_by('username')
+    pendientes = User.objects.filter(rol='owner', estado='pending').order_by('-date_joined')
+    activos_qs = User.objects.filter(rol='owner', estado='active').order_by('username')
     activos_page = Paginator(activos_qs, 50).get_page(request.GET.get('page', 1))
     return render(request, 'superadmin/users.html', {
         'pendientes': pendientes,
@@ -35,38 +35,38 @@ def users(request):
 
 @require_POST
 def user_approve(request, pk):
-    usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
-    usuario.estado = 'activo'
+    usuario = get_object_or_404(User, pk=pk, rol='owner')
+    usuario.estado = 'active'
     usuario.save()
-    enviar_cuenta_aprobada(usuario)
-    messages.success(request, f'Cuenta de {usuario.username} aprobada.')
+    send_account_approved(usuario)
+    messages.success(request, f'Account de {usuario.username} aprobada.')
     return redirect('superadmin_users')
 
 
 @require_POST
 def user_reject(request, pk):
-    usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
-    usuario.estado = 'rechazado'
+    usuario = get_object_or_404(User, pk=pk, rol='owner')
+    usuario.estado = 'rejected'
     usuario.save()
-    enviar_cuenta_rechazada(usuario)
-    messages.success(request, f'Cuenta de {usuario.username} rechazada.')
+    send_account_rejected(usuario)
+    messages.success(request, f'Account de {usuario.username} rechazada.')
     return redirect('superadmin_users')
 
 
 @require_POST
 def user_delete(request, pk):
-    usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
+    usuario = get_object_or_404(User, pk=pk, rol='owner')
     username = usuario.username
     try:
         usuario.delete()
-        messages.success(request, f'Usuario {username} eliminado.')
+        messages.success(request, f'User {username} eliminado.')
     except Exception:
         messages.error(request, f'No se puede eliminar a {username} porque tiene tiendas asociadas.')
     return redirect('superadmin_users')
 
 
 def user_change_password(request, pk):
-    usuario = get_object_or_404(Usuario, pk=pk, rol='dueno')
+    usuario = get_object_or_404(User, pk=pk, rol='owner')
     if request.method == 'POST':
         form = SetPasswordForm(usuario, request.POST)
         if form.is_valid():
@@ -82,24 +82,24 @@ def user_change_password(request, pk):
 
 
 def shops(request):
-    todas = Tienda.objects.select_related('dueno').order_by('-created_at')
+    todas = Shop.objects.select_related('dueno').order_by('-created_at')
     return render(request, 'superadmin/shops.html', {'tiendas': todas})
 
 
 def shop_create(request):
     if request.method == 'POST':
-        form = TiendaSuperadminForm(request.POST)
+        form = ShopSuperadminForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Tienda creada correctamente.')
             return redirect('superadmin_shops')
     else:
-        form = TiendaSuperadminForm()
+        form = ShopSuperadminForm()
     return render(request, 'superadmin/shop_create.html', {'form': form})
 
 
 def orders(request):
-    qs = Orden.objects.select_related('tienda').order_by('-created_at')
+    qs = Order.objects.select_related('tienda').order_by('-created_at')
 
     filtro_tienda = request.GET.get('tienda', '')
     filtro_estado = request.GET.get('estado', '')
@@ -112,9 +112,9 @@ def orders(request):
     page_obj = Paginator(qs, 25).get_page(request.GET.get('page', 1))
     context = {
         'page_obj': page_obj,
-        'tiendas': Tienda.objects.order_by('nombre'),
+        'tiendas': Shop.objects.order_by('nombre'),
         'filtro_tienda': filtro_tienda,
         'filtro_estado': filtro_estado,
-        'estados': Orden.ESTADO_CHOICES,
+        'estados': Order.ESTADO_CHOICES,
     }
     return render(request, 'superadmin/orders.html', context)

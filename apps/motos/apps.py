@@ -1,7 +1,0 @@
-from django.apps import AppConfig
-
-
-class MotosConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.motos'
-    verbose_name = 'Motos'

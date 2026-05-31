@@ -4,7 +4,7 @@ import hmac
 import httpx
 
 
-def crear_invoice(tienda, monto, orden_id, redirect_url=None):
+def create_invoice(tienda, monto, orden_id, redirect_url=None):
     payload = {
         "amount": str(monto),
         "currency": "USD",
@@ -25,7 +25,7 @@ def crear_invoice(tienda, monto, orden_id, redirect_url=None):
     return res.json()
 
 
-def verificar_pago(tienda, invoice_id):
+def verify_payment(tienda, invoice_id):
     res = httpx.get(
         f"{tienda.btcpay_url.rstrip('/')}/api/v1/stores/{tienda.btcpay_store_id}/invoices/{invoice_id}",
         headers={"Authorization": f"token {tienda.btcpay_api_key}"},
@@ -35,7 +35,7 @@ def verificar_pago(tienda, invoice_id):
     return res.json()["status"]  # 'New' | 'Processing' | 'Settled' | 'Expired'
 
 
-def verificar_firma_webhook(secret, body_bytes, sig_header):
+def verify_webhook_signature(secret, body_bytes, sig_header):
     """Validate BTCPay-Sig: sha256=<hmac> header."""
     if not secret or not sig_header:
         return False

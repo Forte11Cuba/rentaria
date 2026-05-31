@@ -1,7 +1,7 @@
 from urllib.parse import quote
 
 
-def generar_link_whatsapp(orden):
+def generate_whatsapp_link(orden):
     nombre_campo = orden.respuestas.filter(campo__variable='nombre_completo').first()
     nombre = nombre_campo.valor if nombre_campo else 'Cliente'
 

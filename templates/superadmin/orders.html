@@ -45,7 +45,7 @@
         <thead>
             <tr class="border-b border-br-border">
                 <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">ID</th>
-                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Tienda</th>
+                <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Shop</th>
                 <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Fechas</th>
                 <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Total</th>
                 <th class="text-left text-xs text-br-text opacity-40 font-medium px-4 py-3">Pago</th>
@@ -64,9 +64,9 @@
                     {% if orden.metodo_pago == 'bitcoin_btcpay' %}Bitcoin{% else %}Efectivo{% endif %}
                 </td>
                 <td class="px-4 py-3">
-                    {% if orden.estado == 'confirmada' %}
+                    {% if orden.estado == 'confirmed' %}
                     <span class="text-xs text-green-400 bg-green-900/20 border border-green-700/30 px-2 py-0.5">Confirmada</span>
-                    {% elif orden.estado == 'pendiente' %}
+                    {% elif orden.estado == 'pending' %}
                     <span class="text-xs text-br-accent bg-br-accent/10 border border-br-accent/30 px-2 py-0.5">Pendiente</span>
                     {% else %}
                     <span class="text-xs text-br-text opacity-40 bg-br-bg border border-br-border px-2 py-0.5">Cancelada</span>

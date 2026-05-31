@@ -51,7 +51,7 @@
         <!-- Tipo icono -->
         <div class="shrink-0 w-8 h-8 flex items-center justify-center
                     {% if op.monto >= 0 %}bg-green-900/20 text-green-400{% else %}bg-red-900/20 text-red-400{% endif %}">
-            {% if op.tipo == 'transferencia' %}
+            {% if op.tipo == 'transfer' %}
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
             </svg>
@@ -70,7 +70,7 @@
         <div class="flex-1 min-w-0">
             <p class="text-sm text-br-text">
                 {{ op.descripcion|default:"Sin descripción" }}
-                {% if op.tipo == 'transferencia' and op.cuenta_contraparte %}
+                {% if op.tipo == 'transfer' and op.cuenta_contraparte %}
                 <span class="text-xs text-br-text opacity-40 ml-1">
                     {% if op.monto >= 0 %}← de{% else %}→ a{% endif %}
                     {{ op.cuenta_contraparte.nombre }}
@@ -82,7 +82,7 @@
                 <span class="text-xs px-1.5 py-0.5 border border-br-border text-br-text opacity-40">
                     {{ op.get_tipo_display }}
                 </span>
-                {% if op.tipo == 'transferencia' and op.tasa_cambio and op.tasa_cambio != 1 %}
+                {% if op.tipo == 'transfer' and op.tasa_cambio and op.tasa_cambio != 1 %}
                 <span class="text-xs text-br-text opacity-30 font-mono">
                     tasa {{ op.tasa_cambio|floatformat:"-6" }}
                 </span>
@@ -102,7 +102,7 @@
         <!-- Eliminar -->
         <div class="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
             <form method="post" action="{% url 'owner_operation_delete' slug=tienda.slug op_pk=op.pk %}"
-                  onsubmit="return confirm('¿Eliminar esta operación?{% if op.tipo == "transferencia" %} Se eliminará también la otra pata de la transferencia.{% endif %}')">
+                  onsubmit="return confirm('¿Eliminar esta operación?{% if op.tipo == "transfer" %} Se eliminará también la otra pata de la transferencia.{% endif %}')">
                 {% csrf_token %}
                 <button type="submit" class="w-7 h-7 flex items-center justify-center border border-br-border text-br-text opacity-50 hover:opacity-100 hover:border-red-700/50 hover:text-red-400 transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

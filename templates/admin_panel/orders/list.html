@@ -48,9 +48,9 @@
           </td>
           <td class="px-4 py-3 text-right font-mono text-br-accent font-bold">${{ orden.monto_total_usd }}</td>
           <td class="px-4 py-3 text-center">
-            {% if orden.estado == 'confirmada' %}
+            {% if orden.estado == 'confirmed' %}
             <span class="text-xs border border-green-400/40 text-green-400 px-2 py-0.5">Confirmada</span>
-            {% elif orden.estado == 'pendiente' %}
+            {% elif orden.estado == 'pending' %}
             <span class="text-xs border border-yellow-400/40 text-yellow-400 px-2 py-0.5">Pendiente</span>
             {% else %}
             <span class="text-xs border border-br-border text-br-text opacity-40 px-2 py-0.5">Cancelada</span>

@@ -5,8 +5,8 @@ from django.urls import include, path
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
-    path('auth/', include('apps.usuarios.urls')),
-    path('dashboard/', include('apps.admin_panel.dueno_urls')),
+    path('auth/', include('apps.users.urls')),
+    path('dashboard/', include('apps.admin_panel.owner_urls')),
     path('superadmin/', include('apps.admin_panel.superadmin_urls')),
-    path('', include('apps.reservas.urls')),  # flujo cliente — al final por el catch-all <slug>
+    path('', include('apps.bookings.urls')),  # public client flow — last because of <slug> catch-all
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

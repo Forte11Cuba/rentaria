@@ -142,7 +142,7 @@ docker compose up -d --build
 0 3 * * * cd /path/to/rentaria && docker compose --profile certbot run --rm certbot renew && docker compose restart nginx
 
 # Cancel pending Bitcoin orders older than 35 min every 10 min
-*/10 * * * * cd /path/to/rentaria && docker compose exec web python manage.py cancelar_ordenes_expiradas
+*/10 * * * * cd /path/to/rentaria && docker compose exec web python manage.py cancel_expired_orders
 ```
 
 ---
@@ -213,24 +213,24 @@ docker compose exec db pg_dump -U rentaria rentaria > backup_$(date +%Y%m%d).sql
 adminsite/
 ├── config/             # Settings, URLs, WSGI, context processors
 ├── apps/
-│   ├── usuarios/       # Usuario (AbstractUser), auth, registration, roles
-│   ├── tiendas/        # Shop model
-│   ├── motos/          # ModeloMoto, Moto (unit with plate), PlanPrecio, FotoModelo, CargoMoto
-│   ├── reservas/       # Order, LineaOrden, RespuestaCliente, public booking flow
-│   ├── formularios/    # CampoFormulario, PlantillaContrato
-│   ├── cuentas/        # Per-shop internal accounting (Cuenta, Operacion)
+│   ├── users/          # User (AbstractUser), auth, registration, roles
+│   ├── shops/          # Shop model
+│   ├── units/          # UnitModel, Unit (rentable instance with plate), PricePlan, UnitPhoto, UnitCharge
+│   ├── bookings/       # Order, OrderLine, CustomerResponse, public booking flow
+│   ├── forms/          # FormField, ContractTemplate
+│   ├── accounts/       # Per-shop internal accounting (Account, Operation)
 │   └── admin_panel/    # Owner + superadmin views (urls + views + forms)
 ├── services/
 │   ├── btcpay.py       # BTCPay integration
-│   ├── confirmacion.py # Order confirmation orchestrator
-│   ├── contrato.py     # PDF generation (Markdown → HTML → WeasyPrint)
+│   ├── confirmation.py # Order confirmation orchestrator
+│   ├── contract.py     # PDF generation (Markdown → HTML → WeasyPrint)
 │   ├── email.py        # Emails via Resend
 │   └── whatsapp.py     # Pre-filled WhatsApp link for cash flow
 ├── templates/
 │   ├── base_cliente.html     # Customer flow (dark Rentaria theme)
 │   ├── base_admin.html       # Admin shell (light/dark with CSS vars)
 │   ├── auth/                 # login, register, pending, password-reset
-│   ├── reservas/             # Multi-step customer flow
+│   ├── bookings/             # Multi-step customer flow
 │   ├── admin_panel/          # Owner panel
 │   └── superadmin/           # Global panel
 ├── static/             # CSS, JS, images (logo, favicon)
