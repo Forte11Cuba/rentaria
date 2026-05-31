@@ -11,8 +11,8 @@ from . import views
 urlpatterns = [
     path('login/', views.RentariaLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('register/', views.registro, name='register'),
-    path('pending/', views.espera, name='pending'),
+    path('register/', views.register, name='register'),
+    path('pending/', views.pending, name='pending'),
     path('password-reset/', PasswordResetView.as_view(
         template_name='auth/password_reset.html',
         email_template_name='auth/password_reset_email.txt',

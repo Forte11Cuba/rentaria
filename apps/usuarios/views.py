@@ -26,7 +26,7 @@ class RentariaLoginView(LoginView):
         return '/superadmin/' if user.rol == 'superadmin' else '/dashboard/'
 
 
-def registro(request):
+def register(request):
     if request.user.is_authenticated and request.user.estado == 'activo':
         return redirect('/dashboard/')
     if request.method == 'POST':
@@ -39,7 +39,7 @@ def registro(request):
     return render(request, 'auth/register.html', {'form': form})
 
 
-def espera(request):
+def pending(request):
     return render(request, 'auth/pending.html')
 
 
