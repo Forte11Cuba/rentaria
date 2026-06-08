@@ -5,11 +5,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.bookings.models import Order
-from apps.shops.models import Shop
+from apps.shops.models import Shop, PlatformSMTPConfig
 from apps.users.models import User
 from services.email import send_account_approved, send_account_rejected
 
-from .forms import ShopSuperadminForm
+from .forms import ShopSuperadminForm, PlatformSMTPForm
 
 
 def dashboard(request):
@@ -118,3 +118,16 @@ def orders(request):
         'estados': Order.ESTADO_CHOICES,
     }
     return render(request, 'superadmin/orders.html', context)
+
+
+def smtp_settings(request):
+    config = PlatformSMTPConfig.get()
+    if request.method == 'POST':
+        form = PlatformSMTPForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Configuración SMTP guardada.')
+            return redirect('superadmin_smtp')
+    else:
+        form = PlatformSMTPForm(instance=config)
+    return render(request, 'superadmin/smtp_settings.html', {'form': form, 'config': config})

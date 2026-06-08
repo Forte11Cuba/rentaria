@@ -1,38 +1,14 @@
 import logging
-import os
 
-import resend
 from django.conf import settings
+
+import services.smtp as smtp_sender
 
 logger = logging.getLogger(__name__)
 
 
-def _send(params: dict) -> bool:
-    api_key = os.environ.get('RESEND_API_KEY', '')
-    if not api_key:
-        logger.info(
-            '[EMAIL — sin API key, no enviado]\n  To: %s\n  Subject: %s',
-            params.get('to'), params.get('subject'),
-        )
-        return False
-    resend.api_key = api_key
-    try:
-        resend.Emails.send(params)
-        return True
-    except Exception:
-        logger.exception('Error enviando email a %s', params.get('to'))
-        return False
-
-
-def _from_platform() -> str:
+def _platform_from():
     return f'{settings.BRAND_NAME} <no-reply@{settings.BASE_DOMAIN}>'
-
-
-def _from_shop(tienda) -> str:
-    if tienda.email_from_address:
-        name = tienda.email_from_name or tienda.nombre
-        return f'{name} <{tienda.email_from_address}>'
-    return f'{tienda.nombre} <no-reply@{settings.BASE_DOMAIN}>'
 
 
 def _generate_ics(orden) -> bytes:
@@ -114,30 +90,30 @@ def _base_html(tienda_nombre, titulo, cuerpo) -> str:
 # ── Emails de plataforma ───────────────────────────────────────────────────────
 
 def send_account_approved(usuario) -> bool:
-    return _send({
-        'from': _from_platform(),
-        'to': [usuario.email],
-        'subject': f'Tu cuenta ha sido aprobada — {settings.BRAND_NAME}',
-        'html': _base_html(settings.BRAND_NAME, 'Cuenta aprobada', f'''
+    return smtp_sender.send(
+        to=usuario.email,
+        subject=f'Tu cuenta ha sido aprobada — {settings.BRAND_NAME}',
+        html=_base_html(settings.BRAND_NAME, 'Cuenta aprobada', f'''
             <p style="margin-bottom:16px">Hola <strong>{usuario.username}</strong>,</p>
             <p style="margin-bottom:24px">Tu cuenta ha sido aprobada. Ya puedes iniciar sesión y comenzar a configurar tu tienda.</p>
             <a href="{settings.APP_URL}/auth/login/"
                style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
               Iniciar sesión →
             </a>'''),
-    })
+        from_addr=_platform_from(),
+    )
 
 
 def send_account_rejected(usuario) -> bool:
-    return _send({
-        'from': _from_platform(),
-        'to': [usuario.email],
-        'subject': f'Actualización sobre tu cuenta — {settings.BRAND_NAME}',
-        'html': _base_html(settings.BRAND_NAME, 'Solicitud no aprobada', f'''
+    return smtp_sender.send(
+        to=usuario.email,
+        subject=f'Actualización sobre tu cuenta — {settings.BRAND_NAME}',
+        html=_base_html(settings.BRAND_NAME, 'Solicitud no aprobada', f'''
             <p style="margin-bottom:16px">Hola <strong>{usuario.username}</strong>,</p>
             <p style="margin-bottom:16px">Lamentamos informarte que tu solicitud de cuenta no ha podido ser aprobada en esta ocasión.</p>
             <p style="color:#6b7280;font-size:12px">Si crees que es un error, responde a este correo.</p>'''),
-    })
+        from_addr=_platform_from(),
+    )
 
 
 # ── Emails de reservas ─────────────────────────────────────────────────────────
@@ -150,48 +126,48 @@ def send_customer_confirmation(orden) -> bool:
     ics_data = _generate_ics(orden)
     tabla = _order_table(orden)
 
-    return _send({
-        'from': _from_shop(orden.tienda),
-        'to': [email_resp.valor],
-        'subject': f'Reserva confirmada #{orden.id} — {orden.tienda.nombre}',
-        'html': _base_html(orden.tienda.nombre, '¡Reserva confirmada!', f'''
+    return smtp_sender.send(
+        to=email_resp.valor,
+        subject=f'Reserva confirmada #{orden.id} — {orden.tienda.nombre}',
+        html=_base_html(orden.tienda.nombre, '¡Reserva confirmada!', f'''
             {tabla}
             <p style="color:#6b7280;font-size:12px;margin-top:8px">
               El archivo .ics adjunto te permite agregar la reserva a tu calendario.
             </p>'''),
-        'attachments': [{'filename': 'reserva.ics', 'content': list(ics_data)}],
-    })
+        tienda=orden.tienda,
+        attachments=[{'filename': 'reserva.ics', 'content': list(ics_data)}],
+    )
 
 
 def send_new_order_owner(orden) -> bool:
     metodo = 'Bitcoin (BTCPay)' if orden.metodo_pago == 'bitcoin_btcpay' else 'Efectivo'
     tabla = _order_table(orden)
 
-    return _send({
-        'from': _from_platform(),
-        'to': [orden.tienda.dueno.email],
-        'subject': f'Nueva orden #{orden.id} — {orden.tienda.nombre}',
-        'html': _base_html(orden.tienda.nombre, 'Nueva orden recibida', f'''
+    return smtp_sender.send(
+        to=orden.tienda.dueno.email,
+        subject=f'Nueva orden #{orden.id} — {orden.tienda.nombre}',
+        html=_base_html(orden.tienda.nombre, 'Nueva orden recibida', f'''
             {tabla}
             <p style="color:#6b7280;font-size:12px;margin-bottom:20px">Método de pago: {metodo}</p>
             <a href="{settings.APP_URL}/dashboard/"
                style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
               Ver orden →
             </a>'''),
-    })
+        from_addr=_platform_from(),
+    )
 
 
 def send_order_confirmed_owner(orden) -> bool:
     tabla = _order_table(orden)
 
-    return _send({
-        'from': _from_platform(),
-        'to': [orden.tienda.dueno.email],
-        'subject': f'Order confirmada #{orden.id} — {orden.tienda.nombre}',
-        'html': _base_html(orden.tienda.nombre, 'Order confirmada', f'''
+    return smtp_sender.send(
+        to=orden.tienda.dueno.email,
+        subject=f'Order confirmada #{orden.id} — {orden.tienda.nombre}',
+        html=_base_html(orden.tienda.nombre, 'Order confirmada', f'''
             {tabla}
             <a href="{settings.APP_URL}/dashboard/"
                style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
               Ver orden →
             </a>'''),
-    })
+        from_addr=_platform_from(),
+    )

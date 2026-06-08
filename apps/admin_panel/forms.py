@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from apps.accounts.models import Account, Operation
 from apps.forms.models import FormField, ContractTemplate
 from apps.units.models import UnitModel, Unit, PricePlan
-from apps.shops.models import Shop
+from apps.shops.models import Shop, PlatformSMTPConfig
 from apps.users.models import User
 
 
@@ -47,7 +47,8 @@ class ShopOwnerForm(forms.ModelForm):
             'whatsapp_activo', 'whatsapp_numero',
             'btcpay_activo', 'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
             'public_api',
-            'email_from_name', 'email_from_address',
+            'smtp_host', 'smtp_port', 'smtp_user', 'smtp_password', 'smtp_use_tls',
+            'smtp_from_email', 'smtp_from_name',
         ]
         labels = {
             'nombre': 'Nombre de la tienda',
@@ -61,13 +62,40 @@ class ShopOwnerForm(forms.ModelForm):
             'btcpay_store_id': 'BTCPay Store ID',
             'btcpay_webhook_secret': 'Webhook Secret (opcional, para seguridad)',
             'public_api': 'Activar API pública del catálogo',
-            'email_from_name': 'Nombre del remitente (ej: Bitride)',
-            'email_from_address': 'Correo del remitente (ej: reservas@bitride.rent)',
+            'smtp_host': 'Servidor SMTP',
+            'smtp_port': 'Puerto',
+            'smtp_user': 'Usuario',
+            'smtp_password': 'Contraseña',
+            'smtp_use_tls': 'Usar TLS (STARTTLS)',
+            'smtp_from_email': 'Correo remitente (ej: reservas@bitride.rent)',
+            'smtp_from_name': 'Nombre remitente (ej: Bitride)',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['logo'].required = False
+
+
+class PlatformSMTPForm(forms.ModelForm):
+    class Meta:
+        model = PlatformSMTPConfig
+        fields = [
+            'smtp_host', 'smtp_port', 'smtp_user', 'smtp_password',
+            'smtp_use_tls', 'smtp_from_email', 'smtp_from_name',
+        ]
+        labels = {
+            'smtp_host': 'Servidor SMTP',
+            'smtp_port': 'Puerto',
+            'smtp_user': 'Usuario',
+            'smtp_password': 'Contraseña',
+            'smtp_use_tls': 'Usar TLS (STARTTLS)',
+            'smtp_from_email': 'Correo remitente',
+            'smtp_from_name': 'Nombre remitente',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['smtp_password'].required = False
 
 
 class UnitModelForm(forms.ModelForm):

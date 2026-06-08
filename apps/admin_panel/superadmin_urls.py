@@ -12,4 +12,5 @@ urlpatterns = [
     path('shops/', views.shops, name='superadmin_shops'),
     path('shops/create/', views.shop_create, name='superadmin_shop_create'),
     path('orders/', views.orders, name='superadmin_orders'),
+    path('smtp/', views.smtp_settings, name='superadmin_smtp'),
 ]
