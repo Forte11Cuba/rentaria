@@ -133,31 +133,71 @@
             </div>
         </div>
 
-        <!-- Correo personalizado -->
+        <!-- Correo SMTP propio -->
         <div class="bg-br-card border border-br-border p-4">
-            <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">Correo de reservas</h3>
+            <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">Correo SMTP propio</h3>
             <div class="space-y-4">
                 <p class="text-xs text-br-text opacity-40">
-                    Si configuras un correo propio, las confirmaciones llegarán desde tu dominio en lugar de <code class="opacity-60">@{{ request.get_host }}</code>.
-                    Requiere que el dominio esté verificado en Resend.
+                    Opcional. Si lo configuras, las confirmaciones de reserva saldrán desde tu propio servidor de correo.
+                    Si lo dejas vacío, se usará el SMTP global de la plataforma.
                 </p>
-                <div>
-                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Nombre del remitente</label>
-                    <input type="text" name="email_from_name" value="{{ form.email_from_name.value|default:'' }}"
-                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
-                           placeholder="Bitride">
-                    <p class="text-xs text-br-text opacity-30 mt-1">Nombre que verá el cliente en el campo "De:".</p>
+
+                {% if tienda.smtp_configured %}
+                <div class="border border-green-500/30 bg-green-500/5 px-3 py-2">
+                    <p class="text-xs text-green-400">SMTP propio activo — enviando desde <strong>{{ tienda.smtp_from_email }}</strong></p>
                 </div>
+                {% endif %}
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Host</label>
+                        <input type="text" name="smtp_host" value="{{ form.smtp_host.value|default:'' }}"
+                               class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                               placeholder="mail.bitride.rent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Puerto</label>
+                        <input type="number" name="smtp_port" value="{{ form.smtp_port.value|default:'587' }}"
+                               class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent">
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Correo del remitente</label>
-                    <input type="email" name="email_from_address" value="{{ form.email_from_address.value|default:'' }}"
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Usuario</label>
+                    <input type="text" name="smtp_user" value="{{ form.smtp_user.value|default:'' }}"
                            class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
                            placeholder="reservas@bitride.rent">
-                    <p class="text-xs text-br-text opacity-30 mt-1">Vacío = se usa el correo por defecto de la plataforma.</p>
                 </div>
-                {% for error in form.email_from_address.errors %}
-                <p class="text-xs text-red-400">{{ error }}</p>
-                {% endfor %}
+
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Contraseña</label>
+                    <input type="password" name="smtp_password"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="••••••••••••">
+                    <p class="text-xs text-br-text opacity-30 mt-1">Dejar vacío para mantener la contraseña guardada.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="smtp_use_tls" id="id_smtp_use_tls"
+                           {% if form.smtp_use_tls.value %}checked{% endif %}
+                           class="accent-br-accent">
+                    <label for="id_smtp_use_tls" class="text-xs font-medium text-br-text opacity-70">Usar TLS (STARTTLS)</label>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Correo remitente</label>
+                        <input type="email" name="smtp_from_email" value="{{ form.smtp_from_email.value|default:'' }}"
+                               class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                               placeholder="reservas@bitride.rent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Nombre remitente</label>
+                        <input type="text" name="smtp_from_name" value="{{ form.smtp_from_name.value|default:'' }}"
+                               class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                               placeholder="Bitride">
+                    </div>
+                </div>
             </div>
         </div>
 
