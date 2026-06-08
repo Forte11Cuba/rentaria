@@ -15,7 +15,12 @@ class Customer(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['email', 'tienda'], name='unique_customer_per_shop')
+            models.UniqueConstraint(fields=['email', 'tienda'], name='unique_customer_per_shop'),
+            models.UniqueConstraint(
+                fields=['nombre', 'tienda'],
+                name='unique_username_per_shop',
+                condition=models.Q(nombre__gt=''),
+            ),
         ]
         verbose_name = 'Customer'
         verbose_name_plural = 'Customers'

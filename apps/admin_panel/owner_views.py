@@ -851,3 +851,72 @@ def customers_list(request, slug):
     ctx = _shop_ctx(tienda, request)
     ctx['page_obj'] = page_obj
     return render(request, 'admin_panel/customers.html', ctx)
+
+
+def customer_detail(request, slug, username):
+    tienda = _owner_shop(slug, request)
+    cliente = get_object_or_404(Customer, nombre=username, tienda=tienda)
+    ordenes = (
+        Order.objects.filter(customer=cliente, tienda=tienda)
+        .prefetch_related('lineas__modelo')
+        .order_by('-created_at')
+    )
+    total_generado = ordenes.filter(estado='confirmed').aggregate(t=Sum('monto_total_usd'))['t'] or 0
+    total_confirmadas = ordenes.filter(estado='confirmed').count()
+    total_pendientes = ordenes.filter(estado='pending').count()
+    modelos_count = {}
+    for orden in ordenes:
+        for linea in orden.lineas.all():
+            nombre = f"{linea.modelo.marca} {linea.modelo.modelo}"
+            modelos_count[nombre] = modelos_count.get(nombre, 0) + 1
+    ctx = _shop_ctx(tienda, request)
+    ctx.update({
+        'cliente': cliente,
+        'ordenes': ordenes,
+        'total_generado': total_generado,
+        'total_confirmadas': total_confirmadas,
+        'total_pendientes': total_pendientes,
+        'modelos_count': modelos_count,
+    })
+    return render(request, 'admin_panel/customer_detail.html', ctx)
+
+
+def customer_edit(request, slug, pk):
+    from django.contrib.auth.hashers import make_password
+    tienda = _owner_shop(slug, request)
+    cliente = get_object_or_404(Customer, pk=pk, tienda=tienda)
+    errors = {}
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        nueva_password = request.POST.get('nueva_password', '').strip()
+        confirmar_password = request.POST.get('confirmar_password', '').strip()
+        if nombre and Customer.objects.filter(nombre=nombre, tienda=tienda).exclude(pk=cliente.pk).exists():
+            errors['nombre'] = 'Ese username ya está en uso en esta tienda.'
+        if nueva_password:
+            if len(nueva_password) < 8:
+                errors['nueva_password'] = 'La contraseña debe tener al menos 8 caracteres.'
+            elif nueva_password != confirmar_password:
+                errors['confirmar_password'] = 'Las contraseñas no coinciden.'
+        if not errors:
+            cliente.nombre = nombre
+            update_fields = ['nombre']
+            if nueva_password:
+                cliente.password = make_password(nueva_password)
+                update_fields.append('password')
+            cliente.save(update_fields=update_fields)
+            messages.success(request, f'Cliente {cliente.email} actualizado.')
+            return redirect('owner_customers', slug=slug)
+    ctx = _shop_ctx(tienda, request)
+    ctx.update({'cliente': cliente, 'errors': errors})
+    return render(request, 'admin_panel/customer_edit.html', ctx)
+
+
+@require_POST
+def customer_activate(request, slug, pk):
+    tienda = _owner_shop(slug, request)
+    cliente = get_object_or_404(Customer, pk=pk, tienda=tienda)
+    cliente.is_active = True
+    cliente.activation_token = ''
+    cliente.save(update_fields=['is_active', 'activation_token'])
+    messages.success(request, f'Cliente {cliente.email} activado.')
+    return redirect('owner_customers', slug=slug)

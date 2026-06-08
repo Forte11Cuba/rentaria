@@ -1,5 +1,5 @@
 from django.db import models
-from django_cryptography.fields import encrypt
+from encrypted_model_fields.fields import EncryptedCharField
 
 
 class Shop(models.Model):
@@ -20,7 +20,7 @@ class Shop(models.Model):
     smtp_host = models.CharField(max_length=200, blank=True)
     smtp_port = models.PositiveIntegerField(default=587)
     smtp_user = models.CharField(max_length=200, blank=True)
-    smtp_password = encrypt(models.CharField(max_length=500, blank=True))
+    smtp_password = EncryptedCharField(max_length=500, blank=True)
     smtp_use_tls = models.BooleanField(default=True)
     smtp_from_email = models.EmailField(blank=True)
     smtp_from_name = models.CharField(max_length=100, blank=True)
@@ -41,7 +41,7 @@ class PlatformSMTPConfig(models.Model):
     smtp_host = models.CharField(max_length=200, blank=True)
     smtp_port = models.PositiveIntegerField(default=587)
     smtp_user = models.CharField(max_length=200, blank=True)
-    smtp_password = encrypt(models.CharField(max_length=500, blank=True))
+    smtp_password = EncryptedCharField(max_length=500, blank=True)
     smtp_use_tls = models.BooleanField(default=True)
     smtp_from_email = models.EmailField(blank=True)
     smtp_from_name = models.CharField(max_length=100, blank=True)

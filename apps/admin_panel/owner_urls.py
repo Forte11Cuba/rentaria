@@ -42,6 +42,9 @@ urlpatterns = [
     path('shop/<slug:slug>/orders/<str:orden_id>/contract.pdf', views.order_contract_pdf, name='owner_order_pdf'),
     # Customers
     path('shop/<slug:slug>/customers/', views.customers_list, name='owner_customers'),
+    path('shop/<slug:slug>/customers/<str:username>/', views.customer_detail, name='owner_customer_detail'),
+    path('shop/<slug:slug>/customers/<int:pk>/activate/', views.customer_activate, name='owner_customer_activate'),
+    path('shop/<slug:slug>/customers/<int:pk>/edit/', views.customer_edit, name='owner_customer_edit'),
     # Calendar
     path('shop/<slug:slug>/calendar/', views.calendar, name='owner_calendar'),
     path('shop/<slug:slug>/calendar/events/', views.calendar_events, name='owner_calendar_events'),

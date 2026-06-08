@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'encrypted_model_fields',
     # Rentaria apps
     'apps.users',
     'apps.shops',
@@ -125,6 +126,8 @@ DEFAULT_FROM_EMAIL = f'{BRAND_NAME} <no-reply@{BASE_DOMAIN}>'
 
 # External services (loaded from env)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
 
 # ── Seguridad (producción) ─────────────────────────────────────────────────────
 if not DEBUG:
