@@ -40,8 +40,12 @@
                 <td class="px-4 py-3 text-br-text opacity-70">{{ cliente.total_ordenes }}</td>
                 <td class="px-4 py-3 text-br-text opacity-40 text-xs">{{ cliente.created_at|date:"d/m/Y" }}</td>
                 <td class="px-4 py-3 text-right">
+                    {% if cliente.nombre %}
                     <a href="{% url 'owner_customer_detail' slug=tienda.slug username=cliente.nombre %}"
                        class="text-xs text-br-text opacity-40 hover:opacity-100 hover:text-br-accent transition-colors mr-3">Detalles</a>
+                    {% else %}
+                    <span class="text-xs text-br-text opacity-20 mr-3">Detalles</span>
+                    {% endif %}
                     <a href="{% url 'owner_customer_edit' slug=tienda.slug pk=cliente.pk %}"
                        class="text-xs text-br-text opacity-40 hover:opacity-100 hover:text-br-accent transition-colors">Editar</a>
                 </td>

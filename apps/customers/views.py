@@ -105,10 +105,13 @@ def dashboard(request, slug):
         accion = request.POST.get('accion')
         if accion == 'perfil':
             nombre = request.POST.get('nombre', '').strip()
-            customer.nombre = nombre
-            customer.save(update_fields=['nombre'])
-            messages.success(request, 'Nombre actualizado.')
-            return redirect('customer_dashboard', slug=slug)
+            if nombre and Customer.objects.filter(tienda=tienda, nombre__iexact=nombre).exclude(pk=customer.pk).exists():
+                errors['nombre'] = 'Ese username ya está en uso en esta tienda.'
+            else:
+                customer.nombre = nombre
+                customer.save(update_fields=['nombre'])
+                messages.success(request, 'Nombre actualizado.')
+                return redirect('customer_dashboard', slug=slug)
         elif accion == 'password':
             actual = request.POST.get('password_actual', '')
             nueva = request.POST.get('password_nueva', '').strip()

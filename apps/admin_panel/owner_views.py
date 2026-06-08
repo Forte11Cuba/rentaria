@@ -890,7 +890,7 @@ def customer_edit(request, slug, pk):
         nombre = request.POST.get('nombre', '').strip()
         nueva_password = request.POST.get('nueva_password', '').strip()
         confirmar_password = request.POST.get('confirmar_password', '').strip()
-        if nombre and Customer.objects.filter(nombre=nombre, tienda=tienda).exclude(pk=cliente.pk).exists():
+        if nombre and Customer.objects.filter(nombre__iexact=nombre, tienda=tienda).exclude(pk=cliente.pk).exists():
             errors['nombre'] = 'Ese username ya está en uso en esta tienda.'
         if nueva_password:
             if len(nueva_password) < 8:
