@@ -846,7 +846,7 @@ def calendar_day(request, slug, dia):
 
 def customers_list(request, slug):
     tienda = _owner_shop(slug, request)
-    clientes = Customer.objects.filter(tienda=tienda).order_by('-created_at')
+    clientes = Customer.objects.filter(tienda=tienda).annotate(total_ordenes=Count('ordenes')).order_by('-created_at')
     page_obj = Paginator(clientes, 50).get_page(request.GET.get('page', 1))
     ctx = _shop_ctx(tienda, request)
     ctx['page_obj'] = page_obj

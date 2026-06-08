@@ -14,7 +14,9 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('email', 'tienda')
+        constraints = [
+            models.UniqueConstraint(fields=['email', 'tienda'], name='unique_customer_per_shop')
+        ]
         verbose_name = 'Customer'
         verbose_name_plural = 'Customers'
         ordering = ['-created_at']

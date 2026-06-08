@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -31,6 +32,11 @@ class Order(models.Model):
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
         ordering = ['-created_at']
+
+    def clean(self):
+        super().clean()
+        if self.customer_id and self.customer and self.customer.tienda_id != self.tienda_id:
+            raise ValidationError({'customer': 'Customer must belong to the same shop as the order.'})
 
     def __str__(self):
         return self.id

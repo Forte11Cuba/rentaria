@@ -388,7 +388,7 @@ def book_create(request, slug):
             try:
                 send_customer_activation(customer, token, request)
             except Exception:
-                pass
+                logger.exception('Error enviando email de activación a %s (orden=%s)', customer.email, orden.id)
 
     del request.session['reserva']
     request.session.modified = True

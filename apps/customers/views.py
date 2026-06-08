@@ -35,6 +35,7 @@ def login(request, slug):
         try:
             customer = Customer.objects.get(email=email, tienda=tienda, is_active=True)
             if customer.check_password(password):
+                request.session.cycle_key()
                 request.session[SESSION_KEY] = customer.pk
                 return redirect('customer_dashboard', slug=slug)
             error = 'Contraseña incorrecta.'
@@ -75,6 +76,7 @@ def activate(request, slug, token):
         customer.is_active = True
         customer.activation_token = ''
         customer.save()
+        request.session.cycle_key()
         request.session[SESSION_KEY] = customer.pk
         return redirect('customer_dashboard', slug=slug)
 
