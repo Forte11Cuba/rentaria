@@ -133,6 +133,34 @@
             </div>
         </div>
 
+        <!-- Correo personalizado -->
+        <div class="bg-br-card border border-br-border p-4">
+            <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">Correo de reservas</h3>
+            <div class="space-y-4">
+                <p class="text-xs text-br-text opacity-40">
+                    Si configuras un correo propio, las confirmaciones llegarán desde tu dominio en lugar de <code class="opacity-60">@{{ request.get_host }}</code>.
+                    Requiere que el dominio esté verificado en Resend.
+                </p>
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Nombre del remitente</label>
+                    <input type="text" name="email_from_name" value="{{ form.email_from_name.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="Bitride">
+                    <p class="text-xs text-br-text opacity-30 mt-1">Nombre que verá el cliente en el campo "De:".</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-br-text opacity-70 mb-1.5">Correo del remitente</label>
+                    <input type="email" name="email_from_address" value="{{ form.email_from_address.value|default:'' }}"
+                           class="w-full bg-br-bg border border-br-border text-br-text text-sm px-3 py-2 focus:outline-none focus:border-br-accent"
+                           placeholder="reservas@bitride.rent">
+                    <p class="text-xs text-br-text opacity-30 mt-1">Vacío = se usa el correo por defecto de la plataforma.</p>
+                </div>
+                {% for error in form.email_from_address.errors %}
+                <p class="text-xs text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- API Pública -->
         <div class="bg-br-card border border-br-border p-4">
             <h3 class="text-xs font-semibold text-br-text uppercase tracking-wider mb-4 opacity-60">API Pública del catálogo</h3>

@@ -47,6 +47,7 @@ class ShopOwnerForm(forms.ModelForm):
             'whatsapp_activo', 'whatsapp_numero',
             'btcpay_activo', 'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
             'public_api',
+            'email_from_name', 'email_from_address',
         ]
         labels = {
             'nombre': 'Nombre de la tienda',
@@ -60,6 +61,8 @@ class ShopOwnerForm(forms.ModelForm):
             'btcpay_store_id': 'BTCPay Store ID',
             'btcpay_webhook_secret': 'Webhook Secret (opcional, para seguridad)',
             'public_api': 'Activar API pública del catálogo',
+            'email_from_name': 'Nombre del remitente (ej: Bitride)',
+            'email_from_address': 'Correo del remitente (ej: reservas@bitride.rent)',
         }
 
     def __init__(self, *args, **kwargs):

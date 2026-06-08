@@ -28,8 +28,11 @@ def _from_platform() -> str:
     return f'{settings.BRAND_NAME} <no-reply@{settings.BASE_DOMAIN}>'
 
 
-def _from_shop(tienda_nombre: str) -> str:
-    return f'{tienda_nombre} <no-reply@{settings.BASE_DOMAIN}>'
+def _from_shop(tienda) -> str:
+    if tienda.email_from_address:
+        name = tienda.email_from_name or tienda.nombre
+        return f'{name} <{tienda.email_from_address}>'
+    return f'{tienda.nombre} <no-reply@{settings.BASE_DOMAIN}>'
 
 
 def _generate_ics(orden) -> bytes:
@@ -148,7 +151,7 @@ def send_customer_confirmation(orden) -> bool:
     tabla = _order_table(orden)
 
     return _send({
-        'from': _from_shop(orden.tienda.nombre),
+        'from': _from_shop(orden.tienda),
         'to': [email_resp.valor],
         'subject': f'Reserva confirmada #{orden.id} — {orden.tienda.nombre}',
         'html': _base_html(orden.tienda.nombre, '¡Reserva confirmada!', f'''

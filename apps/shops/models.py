@@ -15,6 +15,8 @@ class Shop(models.Model):
     logo = models.ImageField(upload_to='logos/', blank=True)
     activa = models.BooleanField(default=True)
     public_api = models.BooleanField(default=False)
+    email_from_name = models.CharField(max_length=100, blank=True)
+    email_from_address = models.EmailField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
