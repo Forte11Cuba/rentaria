@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.forms',
     'apps.accounts',
     'apps.admin_panel',
+    'apps.api',
 ]
 
 MIDDLEWARE = [

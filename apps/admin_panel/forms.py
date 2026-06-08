@@ -46,6 +46,7 @@ class ShopOwnerForm(forms.ModelForm):
             'nombre', 'slug', 'logo',
             'whatsapp_activo', 'whatsapp_numero',
             'btcpay_activo', 'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
+            'public_api',
         ]
         labels = {
             'nombre': 'Nombre de la tienda',
@@ -58,6 +59,7 @@ class ShopOwnerForm(forms.ModelForm):
             'btcpay_api_key': 'BTCPay API Key',
             'btcpay_store_id': 'BTCPay Store ID',
             'btcpay_webhook_secret': 'Webhook Secret (opcional, para seguridad)',
+            'public_api': 'Activar API pública del catálogo',
         }
 
     def __init__(self, *args, **kwargs):

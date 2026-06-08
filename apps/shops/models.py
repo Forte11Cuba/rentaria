@@ -14,6 +14,7 @@ class Shop(models.Model):
     btcpay_webhook_secret = models.CharField(max_length=500, blank=True)
     logo = models.ImageField(upload_to='logos/', blank=True)
     activa = models.BooleanField(default=True)
+    public_api = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
