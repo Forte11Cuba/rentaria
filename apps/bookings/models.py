@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -14,6 +15,7 @@ class Order(models.Model):
 
     id = models.CharField(max_length=20, primary_key=True)
     tienda = models.ForeignKey('shops.Shop', on_delete=models.PROTECT, related_name='ordenes')
+    customer = models.ForeignKey('customers.Customer', on_delete=models.SET_NULL, null=True, blank=True, related_name='ordenes')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     hora_inicio = models.TimeField(null=True, blank=True)
@@ -30,6 +32,11 @@ class Order(models.Model):
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
         ordering = ['-created_at']
+
+    def clean(self):
+        super().clean()
+        if self.customer_id and self.customer and self.customer.tienda_id != self.tienda_id:
+            raise ValidationError({'customer': 'Customer must belong to the same shop as the order.'})
 
     def __str__(self):
         return self.id

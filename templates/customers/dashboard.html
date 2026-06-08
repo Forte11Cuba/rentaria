@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi cuenta — {{ tienda.nombre }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#111] min-h-screen text-white px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+
+        <div class="flex items-center justify-between mb-8">
+            {% if tienda.logo %}
+            <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}" class="h-8 object-contain">
+            {% else %}
+            <span class="text-white font-bold">{{ tienda.nombre }}</span>
+            {% endif %}
+            <form method="post" action="{% url 'customer_logout' slug=tienda.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-white/40 hover:text-white/70 transition-colors">Cerrar sesión</button>
+            </form>
+        </div>
+
+        <div class="mb-6">
+            <h1 class="text-lg font-semibold">Hola{% if customer.nombre %}, {{ customer.nombre }}{% endif %}</h1>
+            <p class="text-white/40 text-sm">{{ customer.email }}</p>
+        </div>
+
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Mis reservas</h2>
+
+        {% if ordenes %}
+        <div class="space-y-3">
+            {% for orden in ordenes %}
+            <div class="bg-[#1a1a1a] border border-white/10 p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-mono text-sm text-orange-400">{{ orden.id }}</span>
+                    <span class="text-xs px-2 py-0.5 border
+                        {% if orden.estado == 'confirmed' %}border-green-500/40 text-green-400
+                        {% elif orden.estado == 'cancelled' %}border-red-500/40 text-red-400
+                        {% else %}border-white/20 text-white/50{% endif %}">
+                        {{ orden.get_estado_display }}
+                    </span>
+                </div>
+                <p class="text-xs text-white/50">{{ orden.fecha_inicio }} → {{ orden.fecha_fin }} · {{ orden.dias }} día{{ orden.dias|pluralize }}</p>
+                <p class="text-sm font-semibold text-white mt-1">${{ orden.monto_total_usd }} USD</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-white/30 text-sm">Aún no tienes reservas.</p>
+        {% endif %}
+
+        <div class="mt-8">
+            <a href="/{{ tienda.slug }}/" class="text-xs text-white/30 hover:text-white/60 transition-colors">← Hacer una nueva reserva</a>
+        </div>
+    </div>
+</body>
+</html>

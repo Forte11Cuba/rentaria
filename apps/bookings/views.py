@@ -18,9 +18,10 @@ from apps.units.models import UnitModel, Unit
 from apps.shops.models import Shop
 from services.btcpay import create_invoice, verify_webhook_signature, verify_payment
 from services.confirmation import confirm_order
-from services.email import send_new_order_owner
+from services.email import send_new_order_owner, send_customer_activation
 from services.whatsapp import generate_whatsapp_link
 
+from apps.customers.models import Customer
 from .models import OrderLine, Order, CustomerResponse
 
 
@@ -372,6 +373,22 @@ def book_create(request, slug):
         valor = sesion['respuestas'].get(campo.variable, '')
         if valor:
             CustomerResponse.objects.create(orden=orden, campo=campo, valor=valor)
+
+    # Crear o recuperar cuenta de cliente
+    email_resp = orden.respuestas.filter(campo__es_email_cliente=True).first()
+    if email_resp:
+        customer, created = Customer.objects.get_or_create(
+            email=email_resp.valor.strip().lower(),
+            tienda=tienda,
+        )
+        orden.customer = customer
+        orden.save(update_fields=['customer'])
+        if created:
+            token = customer.generate_activation_token()
+            try:
+                send_customer_activation(customer, token, request)
+            except Exception:
+                logger.exception('Error enviando email de activación a %s (orden=%s)', customer.email, orden.id)
 
     del request.session['reserva']
     request.session.modified = True

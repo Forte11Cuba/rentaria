@@ -40,6 +40,8 @@ urlpatterns = [
     path('shop/<slug:slug>/orders/<str:orden_id>/cancel/', views.order_cancel, name='owner_order_cancel'),
     path('shop/<slug:slug>/orders/<str:orden_id>/reassign/', views.order_reassign, name='owner_order_reassign'),
     path('shop/<slug:slug>/orders/<str:orden_id>/contract.pdf', views.order_contract_pdf, name='owner_order_pdf'),
+    # Customers
+    path('shop/<slug:slug>/customers/', views.customers_list, name='owner_customers'),
     # Calendar
     path('shop/<slug:slug>/calendar/', views.calendar, name='owner_calendar'),
     path('shop/<slug:slug>/calendar/events/', views.calendar_events, name='owner_calendar_events'),

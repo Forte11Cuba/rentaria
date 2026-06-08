@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.admin_panel',
     'apps.api',
+    'apps.customers',
 ]
 
 MIDDLEWARE = [
