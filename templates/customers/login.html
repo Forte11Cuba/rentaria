@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — {{ tienda.nombre }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#111] min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+        {% if tienda.logo %}
+        <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}" class="h-10 object-contain mb-8 mx-auto">
+        {% else %}
+        <h1 class="text-white text-xl font-bold mb-8 text-center">{{ tienda.nombre }}</h1>
+        {% endif %}
+
+        <form method="post" class="space-y-4 bg-[#1a1a1a] border border-white/10 p-6">
+            {% csrf_token %}
+            <h2 class="text-white text-sm font-semibold uppercase tracking-wider mb-4">Mi cuenta</h2>
+
+            {% if error %}
+            <p class="text-red-400 text-xs bg-red-400/10 border border-red-400/20 px-3 py-2">{{ error }}</p>
+            {% endif %}
+
+            <div>
+                <label class="block text-xs text-white/50 mb-1.5">Correo electrónico</label>
+                <input type="email" name="email" required autofocus
+                       class="w-full bg-[#111] border border-white/10 text-white text-sm px-3 py-2 focus:outline-none focus:border-white/40"
+                       placeholder="tu@correo.com">
+            </div>
+
+            <div>
+                <label class="block text-xs text-white/50 mb-1.5">Contraseña</label>
+                <input type="password" name="password" required
+                       class="w-full bg-[#111] border border-white/10 text-white text-sm px-3 py-2 focus:outline-none focus:border-white/40">
+            </div>
+
+            <button type="submit"
+                    class="w-full py-2.5 bg-orange-500 text-black text-sm font-semibold hover:bg-orange-400 transition-colors">
+                Entrar
+            </button>
+        </form>
+
+        <p class="text-center text-xs text-white/30 mt-4">
+            <a href="/{{ tienda.slug }}/" class="hover:text-white/60 transition-colors">← Volver a {{ tienda.nombre }}</a>
+        </p>
+    </div>
+</body>
+</html>

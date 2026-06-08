@@ -116,6 +116,27 @@ def send_account_rejected(usuario) -> bool:
     )
 
 
+# ── Emails de clientes ────────────────────────────────────────────────────────
+
+def send_customer_activation(customer, token, request) -> bool:
+    activate_url = request.build_absolute_uri(
+        f'/{customer.tienda.slug}/account/activate/{token}/'
+    )
+    return smtp_sender.send(
+        to=customer.email,
+        subject=f'Activa tu cuenta — {customer.tienda.nombre}',
+        html=_base_html(customer.tienda.nombre, 'Activa tu cuenta', f'''
+            <p style="margin-bottom:16px">Tu reserva fue registrada con éxito.</p>
+            <p style="margin-bottom:24px">Hemos creado una cuenta para que puedas ver tu historial de reservas. Actívala cuando quieras.</p>
+            <a href="{activate_url}"
+               style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
+              Activar mi cuenta →
+            </a>
+            <p style="color:#6b7280;font-size:11px;margin-top:20px">Si no hiciste esta reserva, ignora este mensaje.</p>'''),
+        tienda=customer.tienda,
+    )
+
+
 # ── Emails de reservas ─────────────────────────────────────────────────────────
 
 def send_customer_confirmation(orden) -> bool:

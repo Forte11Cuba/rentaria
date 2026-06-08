@@ -19,6 +19,7 @@ from decimal import InvalidOperation
 
 from apps.units.models import UnitCharge, UnitPhoto, UnitModel, Unit, PricePlan
 from apps.bookings.models import OrderLine, Order
+from apps.customers.models import Customer
 from apps.shops.models import Shop
 from services.confirmation import confirm_order as _confirm_order
 
@@ -841,3 +842,12 @@ def calendar_day(request, slug, dia):
         'devoluciones': devoluciones,
         'con_clientes': con_clientes,
     })
+
+
+def customers_list(request, slug):
+    tienda = _owner_shop(slug, request)
+    clientes = Customer.objects.filter(tienda=tienda).order_by('-created_at')
+    page_obj = Paginator(clientes, 50).get_page(request.GET.get('page', 1))
+    ctx = _shop_ctx(tienda, request)
+    ctx['page_obj'] = page_obj
+    return render(request, 'admin_panel/customers.html', ctx)

@@ -14,6 +14,7 @@ class Order(models.Model):
 
     id = models.CharField(max_length=20, primary_key=True)
     tienda = models.ForeignKey('shops.Shop', on_delete=models.PROTECT, related_name='ordenes')
+    customer = models.ForeignKey('customers.Customer', on_delete=models.SET_NULL, null=True, blank=True, related_name='ordenes')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     hora_inicio = models.TimeField(null=True, blank=True)
