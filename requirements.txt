@@ -8,4 +8,4 @@ python-dotenv==1.0.1
 httpx==0.28.1
 resend==2.5.1
 icalendar==6.1.1
-django-cryptography==1.1
+django-encrypted-model-fields==0.6.5

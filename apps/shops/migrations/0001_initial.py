@@ -1,5 +1,5 @@
 import django.db.models.deletion
-import django_cryptography.fields
+import encrypted_model_fields.fields
 from django.conf import settings
 from django.db import migrations, models
 
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('smtp_host', models.CharField(blank=True, max_length=200)),
                 ('smtp_port', models.PositiveIntegerField(default=587)),
                 ('smtp_user', models.CharField(blank=True, max_length=200)),
-                ('smtp_password', django_cryptography.fields.encrypt(models.CharField(blank=True, max_length=500))),
+                ('smtp_password', encrypted_model_fields.fields.EncryptedCharField(blank=True, max_length=500)),
                 ('smtp_use_tls', models.BooleanField(default=True)),
                 ('smtp_from_email', models.EmailField(blank=True)),
                 ('smtp_from_name', models.CharField(blank=True, max_length=100)),
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 ('smtp_host', models.CharField(blank=True, max_length=200)),
                 ('smtp_port', models.PositiveIntegerField(default=587)),
                 ('smtp_user', models.CharField(blank=True, max_length=200)),
-                ('smtp_password', django_cryptography.fields.encrypt(models.CharField(blank=True, max_length=500))),
+                ('smtp_password', encrypted_model_fields.fields.EncryptedCharField(blank=True, max_length=500)),
                 ('smtp_use_tls', models.BooleanField(default=True)),
                 ('smtp_from_email', models.EmailField(blank=True)),
                 ('smtp_from_name', models.CharField(blank=True, max_length=100)),

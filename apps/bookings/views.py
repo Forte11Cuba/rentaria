@@ -41,9 +41,9 @@ def _available_units(modelo, fecha_inicio, fecha_fin):
     ocupadas = Unit.objects.filter(
         modelo=modelo,
         activa=True,
-        lineaorden__orden__estado='confirmed',
-        lineaorden__orden__fecha_inicio__lt=fecha_fin,
-        lineaorden__orden__fecha_fin__gt=fecha_inicio,
+        orderline__orden__estado='confirmed',
+        orderline__orden__fecha_inicio__lt=fecha_fin,
+        orderline__orden__fecha_fin__gt=fecha_inicio,
     ).values_list('chapa', flat=True)
     return Unit.objects.filter(modelo=modelo, activa=True).exclude(chapa__in=ocupadas)
 

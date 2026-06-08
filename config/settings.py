@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'encrypted_model_fields',
     # Rentaria apps
     'apps.users',
     'apps.shops',
@@ -125,6 +127,10 @@ DEFAULT_FROM_EMAIL = f'{BRAND_NAME} <no-reply@{BASE_DOMAIN}>'
 
 # External services (loaded from env)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+if not DEBUG and not FIELD_ENCRYPTION_KEY:
+    raise ImproperlyConfigured('FIELD_ENCRYPTION_KEY must be set in production')
 
 # ── Seguridad (producción) ─────────────────────────────────────────────────────
 if not DEBUG:

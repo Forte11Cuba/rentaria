@@ -86,7 +86,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto pt-8">
+<div class="max-w-lg mx-auto pt-4">
+
+  <!-- Logo tienda -->
+  <div class="mb-10 text-center">
+    {% if tienda.logo %}
+    <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}" class="h-24 object-contain mx-auto">
+    {% else %}
+    <span class="font-title text-5xl font-bold uppercase tracking-widest text-white">{{ tienda.nombre }}</span>
+    {% endif %}
+  </div>
 
   <!-- Step indicator -->
   <div class="flex items-center gap-2 mb-10 text-xs font-title tracking-widest uppercase">
