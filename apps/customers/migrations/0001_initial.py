@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('shops', '0005_smtp_config'),
+        ('shops', '0001_initial'),
     ]
 
     operations = [
