@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from encrypted_model_fields.fields import EncryptedCharField
 
@@ -36,14 +37,26 @@ class Shop(models.Model):
     def smtp_configured(self):
         return bool(self.smtp_host and self.smtp_user and self.smtp_from_email)
 
+    def clean(self):
+        super().clean()
+        if self.slug:
+            conflicting = ShopSlugAlias.objects.filter(old_slug=self.slug)
+            if self.pk:
+                conflicting = conflicting.exclude(shop_id=self.pk)
+            if conflicting.exists():
+                raise ValidationError({
+                    'slug': 'Ese slug fue usado previamente por otra tienda.',
+                })
+
     def save(self, *args, **kwargs):
-        previous_slug = None
-        if self.pk:
-            try:
-                previous_slug = Shop.objects.values_list('slug', flat=True).get(pk=self.pk)
-            except Shop.DoesNotExist:
-                previous_slug = None
+        self.full_clean()
         with transaction.atomic():
+            previous_slug = None
+            if self.pk:
+                try:
+                    previous_slug = Shop.objects.values_list('slug', flat=True).get(pk=self.pk)
+                except Shop.DoesNotExist:
+                    previous_slug = None
             super().save(*args, **kwargs)
             if previous_slug and previous_slug != self.slug:
                 ShopSlugAlias.objects.update_or_create(

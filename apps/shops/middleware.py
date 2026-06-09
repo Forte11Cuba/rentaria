@@ -13,10 +13,15 @@ class ShopSlugAliasMiddleware:
     def process_exception(self, request, exception):
         if not isinstance(exception, ShopSlugChanged):
             return None
-        old_segment = f'/{exception.old_slug}'
-        new_segment = f'/{exception.new_slug}'
-        new_path = request.path.replace(old_segment, new_segment, 1)
+        segments = request.path.split('/')
+        for i, seg in enumerate(segments):
+            if seg == exception.old_slug:
+                segments[i] = exception.new_slug
+                break
+        else:
+            return None
+        new_path = '/'.join(segments)
         qs = request.META.get('QUERY_STRING', '')
         if qs:
             new_path = f'{new_path}?{qs}'
-        return HttpResponsePermanentRedirect(new_path)
+        return HttpResponsePermanentRedirect(new_path, preserve_request=True)
