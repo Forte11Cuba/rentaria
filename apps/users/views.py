@@ -3,7 +3,8 @@ from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, SetupForm
+from .models import User
 
 
 class RentariaLoginView(LoginView):
@@ -37,6 +38,20 @@ def register(request):
     else:
         form = RegisterForm()
     return render(request, 'auth/register.html', {'form': form})
+
+
+def setup(request):
+    if User.objects.filter(rol='superadmin').exists():
+        return redirect('login')
+    if request.method == 'POST':
+        form = SetupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect('/superadmin/')
+    else:
+        form = SetupForm()
+    return render(request, 'auth/setup.html', {'form': form})
 
 
 def pending(request):
