@@ -41,7 +41,13 @@
             </button>
         </form>
 
-        <p class="text-center text-xs text-white/30 mt-4">
+        <p class="text-center text-xs text-white/50 mt-4">
+            <a href="{% url 'customer_recover' slug=tienda.slug %}" class="text-orange-400 hover:underline">
+                ¿No recibiste el correo o olvidaste tu contraseña?
+            </a>
+        </p>
+
+        <p class="text-center text-xs text-white/30 mt-3">
             <a href="/{{ tienda.slug }}/" class="hover:text-white/60 transition-colors">← Volver a {{ tienda.nombre }}</a>
         </p>
     </div>
