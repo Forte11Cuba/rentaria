@@ -1,11 +1,10 @@
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 
-from apps.shops.models import Shop
+from apps.shops.utils import get_shop_or_redirect
 
 
 def catalog(request, slug):
-    shop = get_object_or_404(Shop, slug=slug, activa=True, public_api=True)
+    shop = get_shop_or_redirect(slug, activa=True, public_api=True)
 
     def abs_url(field):
         return request.build_absolute_uri(field.url) if field else None

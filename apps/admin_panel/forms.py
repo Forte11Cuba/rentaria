@@ -5,8 +5,36 @@ from django.utils.text import slugify
 from apps.accounts.models import Account, Operation
 from apps.forms.models import FormField, ContractTemplate
 from apps.units.models import UnitModel, Unit, PricePlan
-from apps.shops.models import Shop, PlatformSMTPConfig
+from apps.shops.models import Shop, PlatformSMTPConfig, ShopSlugAlias
 from apps.users.models import User
+
+
+RESERVED_SHOP_SLUGS = {
+    'admin', 'django-admin', 'superadmin', 'auth', 'dashboard', 'api',
+    'static', 'media', 'app', 'apps', 'account', 'accounts', 'login',
+    'logout', 'register', 'signup', 'settings', 'help', 'support',
+    'about', 'terms', 'privacy', 'contact', 'webhook', 'webhooks',
+    'payment', 'health', 'robots.txt',
+}
+
+
+def _validate_shop_slug(slug, instance):
+    slug = (slug or '').strip().lower()
+    if not slug:
+        raise forms.ValidationError('El slug es obligatorio.')
+    if slug in RESERVED_SHOP_SLUGS:
+        raise forms.ValidationError(f'"{slug}" es un slug reservado del sistema.')
+    qs = Shop.objects.filter(slug=slug)
+    if instance and instance.pk:
+        qs = qs.exclude(pk=instance.pk)
+    if qs.exists():
+        raise forms.ValidationError('Este slug ya está en uso por otra tienda.')
+    alias_qs = ShopSlugAlias.objects.filter(old_slug=slug)
+    if instance and instance.pk:
+        alias_qs = alias_qs.exclude(shop_id=instance.pk)
+    if alias_qs.exists():
+        raise forms.ValidationError('Este slug fue usado previamente por otra tienda. Elige otro.')
+    return slug
 
 
 class ChangeEmailForm(forms.ModelForm):
@@ -37,6 +65,9 @@ class ShopSuperadminForm(forms.ModelForm):
         self.fields['nombre'].label = 'Nombre de la tienda'
         self.fields['slug'].label = 'Slug (URL única)'
         self.fields['dueno'].label = 'Dueño'
+
+    def clean_slug(self):
+        return _validate_shop_slug(self.cleaned_data.get('slug'), self.instance)
 
 
 class ShopOwnerForm(forms.ModelForm):
@@ -74,6 +105,9 @@ class ShopOwnerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['logo'].required = False
+
+    def clean_slug(self):
+        return _validate_shop_slug(self.cleaned_data.get('slug'), self.instance)
 
 
 class PlatformSMTPForm(forms.ModelForm):

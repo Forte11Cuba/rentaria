@@ -21,6 +21,7 @@ from apps.units.models import UnitCharge, UnitPhoto, UnitModel, Unit, PricePlan
 from apps.bookings.models import OrderLine, Order
 from apps.customers.models import Customer
 from apps.shops.models import Shop
+from apps.shops.utils import get_shop_or_redirect
 from services.confirmation import confirm_order as _confirm_order
 
 from .forms import (
@@ -36,7 +37,7 @@ def _owner_only(request):
 
 
 def _owner_shop(slug, request):
-    return get_object_or_404(Shop, slug=slug, dueno=request.user)
+    return get_shop_or_redirect(slug, dueno=request.user)
 
 
 def _shop_ctx(tienda, request):

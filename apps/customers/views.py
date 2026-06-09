@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.shops.models import Shop
+from apps.shops.utils import get_shop_or_redirect
 from services.email import send_customer_password_link
 
 from .models import Customer
@@ -26,7 +26,7 @@ def _client_ip(request):
 
 
 def _get_shop(slug):
-    return get_object_or_404(Shop, slug=slug, activa=True)
+    return get_shop_or_redirect(slug, activa=True)
 
 
 def _current_customer(request, tienda):

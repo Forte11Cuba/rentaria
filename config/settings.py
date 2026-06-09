@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.users.middleware.RentariaAuthMiddleware',
+    'apps.shops.middleware.ShopSlugAliasMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
