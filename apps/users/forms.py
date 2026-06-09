@@ -39,6 +39,29 @@ class RegisterForm(UserCreationForm):
         return user
 
 
+class SetupForm(UserCreationForm):
+    email = forms.EmailField(
+        required=True,
+        label='Correo electrónico',
+        widget=forms.EmailInput(attrs={'autocomplete': 'email'}),
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password1', 'password2')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.rol = 'superadmin'
+        user.estado = 'active'
+        user.is_staff = True
+        user.is_superuser = True
+        if commit:
+            user.save()
+        return user
+
+
 class LoginForm(AuthenticationForm):
     def confirm_login_allowed(self, user):
         if user.estado == 'pending':

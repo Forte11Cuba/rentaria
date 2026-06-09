@@ -9,6 +9,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('setup/', views.setup, name='setup'),
     path('login/', views.RentariaLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register, name='register'),

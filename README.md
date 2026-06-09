@@ -63,9 +63,6 @@ DB_PORT=5432
 
 RESEND_API_KEY=re_xxxx
 
-SUPERADMIN_EMAIL=admin@yourdomain.com
-SUPERADMIN_PASSWORD=<strong-password>
-
 BASE_DOMAIN=yourdomain.com
 APP_URL=https://app.yourdomain.com
 ```
@@ -130,8 +127,9 @@ docker compose up -d --build
 
 1. `python manage.py migrate`
 2. `python manage.py collectstatic --noinput`
-3. `python manage.py init_superadmin`
-4. `gunicorn config.wsgi:application --bind 0.0.0.0:8000`
+3. `gunicorn config.wsgi:application --bind 0.0.0.0:8000`
+
+The first time you visit the site (when no superadmin exists yet), every request is redirected to `/auth/setup/`, an in-browser wizard that creates the superadmin with the username, email and password you choose. After that the wizard is no longer reachable.
 
 ---
 
@@ -155,9 +153,6 @@ docker compose logs -f web
 
 # Run migrations manually
 docker compose exec web python manage.py migrate
-
-# Create superadmin manually
-docker compose exec web python manage.py init_superadmin
 
 # Django shell
 docker compose exec web python manage.py shell
