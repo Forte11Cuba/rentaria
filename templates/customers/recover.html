@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer contraseña — {{ tienda.nombre }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#111] min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+        {% if tienda.logo %}
+        <img src="{{ tienda.logo.url }}" alt="{{ tienda.nombre }}" class="h-10 object-contain mb-8 mx-auto">
+        {% else %}
+        <h1 class="text-white text-xl font-bold mb-8 text-center">{{ tienda.nombre }}</h1>
+        {% endif %}
+
+        {% if sent %}
+        <div class="bg-[#1a1a1a] border border-white/10 p-6">
+            <h2 class="text-white text-sm font-semibold uppercase tracking-wider mb-3">Revisa tu correo</h2>
+            <p class="text-white/60 text-xs leading-relaxed">
+                Si existe una cuenta con ese correo, te enviamos un enlace para configurar tu contraseña.
+                Revisa también tu carpeta de spam.
+            </p>
+            <p class="text-white/40 text-xs mt-4">
+                El enlace es de un solo uso. Si no lo recibes en unos minutos puedes solicitarlo de nuevo desde aquí.
+            </p>
+            <a href="{% url 'customer_login' slug=tienda.slug %}"
+               class="block mt-6 text-center py-2.5 bg-orange-500 text-black text-sm font-semibold hover:bg-orange-400 transition-colors">
+                Volver al login
+            </a>
+        </div>
+        {% else %}
+        <form method="post" class="space-y-4 bg-[#1a1a1a] border border-white/10 p-6">
+            {% csrf_token %}
+            <div class="mb-4">
+                <h2 class="text-white text-sm font-semibold uppercase tracking-wider">Restablecer contraseña</h2>
+                <p class="text-white/40 text-xs mt-1">Te enviaremos un enlace para configurar una nueva contraseña.</p>
+            </div>
+
+            {% if error %}
+            <p class="text-red-400 text-xs bg-red-400/10 border border-red-400/20 px-3 py-2">{{ error }}</p>
+            {% endif %}
+
+            <div>
+                <label class="block text-xs text-white/50 mb-1.5">Correo electrónico</label>
+                <input type="email" name="email" required autofocus
+                       class="w-full bg-[#111] border border-white/10 text-white text-sm px-3 py-2 focus:outline-none focus:border-white/40"
+                       placeholder="tu@correo.com">
+            </div>
+
+            <button type="submit"
+                    class="w-full py-2.5 bg-orange-500 text-black text-sm font-semibold hover:bg-orange-400 transition-colors">
+                Enviar enlace
+            </button>
+        </form>
+
+        <p class="text-center text-xs text-white/30 mt-4">
+            <a href="{% url 'customer_login' slug=tienda.slug %}" class="hover:text-white/60 transition-colors">← Volver al login</a>
+        </p>
+        {% endif %}
+    </div>
+</body>
+</html>

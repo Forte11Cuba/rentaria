@@ -1,12 +1,28 @@
 from django.contrib import messages
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.shops.models import Shop
+from services.email import send_customer_password_link
 
 from .models import Customer
 
 SESSION_KEY = 'customer_id'
+
+RECOVER_COOLDOWN_SECONDS = 60
+RECOVER_IP_LIMIT = 5
+RECOVER_IP_WINDOW = 3600
+
+
+def _client_ip(request):
+    x_real_ip = request.META.get('HTTP_X_REAL_IP', '').strip()
+    if x_real_ip:
+        return x_real_ip
+    xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if xff:
+        return xff.split(',')[-1].strip()
+    return request.META.get('REMOTE_ADDR', '')
 
 
 def _get_shop(slug):
@@ -58,25 +74,65 @@ def logout(request, slug):
     return redirect('customer_login', slug=slug)
 
 
+def recover(request, slug):
+    tienda = _get_shop(slug)
+    sent = False
+    error = None
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        ip = _client_ip(request)
+        ip_key = f'customer_recover_ip:{ip}'
+        cache.add(ip_key, 0, RECOVER_IP_WINDOW)
+        ip_count = cache.incr(ip_key)
+        if ip_count > RECOVER_IP_LIMIT:
+            error = 'Demasiados intentos desde esta red. Intenta de nuevo en una hora.'
+        elif not email:
+            error = 'Ingresa tu correo electrónico.'
+        else:
+            email_key = f'customer_recover:{tienda.pk}:{email}'
+            if not cache.get(email_key):
+                customer = Customer.objects.filter(email=email, tienda=tienda).first()
+                if customer:
+                    token = customer.generate_activation_token()
+                    try:
+                        send_customer_password_link(customer, token, request)
+                    except Exception:
+                        pass
+                cache.set(email_key, 1, RECOVER_COOLDOWN_SECONDS)
+            sent = True
+
+    return render(request, 'customers/recover.html', {
+        'tienda': tienda, 'sent': sent, 'error': error,
+    })
+
+
 def activate(request, slug, token):
     tienda = _get_shop(slug)
-    customer = get_object_or_404(Customer, tienda=tienda, activation_token=token, is_active=False)
+    customer = get_object_or_404(Customer, tienda=tienda, activation_token=token)
+    is_first_time = not customer.is_active
 
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         password = request.POST.get('password', '')
         confirm = request.POST.get('password_confirm', '')
 
+        ctx = {
+            'tienda': tienda, 'customer': customer, 'token': token,
+            'is_first_time': is_first_time, 'nombre_value': nombre,
+        }
+
+        if not nombre:
+            ctx['error'] = 'Ingresa un username.'
+            return render(request, 'customers/activate.html', ctx)
+        if Customer.objects.filter(tienda=tienda, nombre__iexact=nombre).exclude(pk=customer.pk).exists():
+            ctx['error'] = 'Ese username ya está en uso en esta tienda.'
+            return render(request, 'customers/activate.html', ctx)
         if len(password) < 8:
-            return render(request, 'customers/activate.html', {
-                'tienda': tienda, 'customer': customer, 'token': token,
-                'error': 'La contraseña debe tener al menos 8 caracteres.',
-            })
+            ctx['error'] = 'La contraseña debe tener al menos 8 caracteres.'
+            return render(request, 'customers/activate.html', ctx)
         if password != confirm:
-            return render(request, 'customers/activate.html', {
-                'tienda': tienda, 'customer': customer, 'token': token,
-                'error': 'Las contraseñas no coinciden.',
-            })
+            ctx['error'] = 'Las contraseñas no coinciden.'
+            return render(request, 'customers/activate.html', ctx)
 
         customer.nombre = nombre
         customer.set_password(password)
@@ -89,6 +145,7 @@ def activate(request, slug, token):
 
     return render(request, 'customers/activate.html', {
         'tienda': tienda, 'customer': customer, 'token': token,
+        'is_first_time': is_first_time, 'nombre_value': customer.nombre,
     })
 
 

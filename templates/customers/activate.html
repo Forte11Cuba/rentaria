@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activa tu cuenta — {{ tienda.nombre }}</title>
+    <title>{% if is_first_time %}Activa tu cuenta{% else %}Restablecer contraseña{% endif %} — {{ tienda.nombre }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#111] min-h-screen flex items-center justify-center px-4">
@@ -17,7 +17,9 @@
         <form method="post" class="space-y-4 bg-[#1a1a1a] border border-white/10 p-6">
             {% csrf_token %}
             <div class="mb-4">
-                <h2 class="text-white text-sm font-semibold uppercase tracking-wider">Activa tu cuenta</h2>
+                <h2 class="text-white text-sm font-semibold uppercase tracking-wider">
+                    {% if is_first_time %}Activa tu cuenta{% else %}Restablecer contraseña{% endif %}
+                </h2>
                 <p class="text-white/40 text-xs mt-1">Cuenta para {{ customer.email }}</p>
             </div>
 
@@ -26,14 +28,15 @@
             {% endif %}
 
             <div>
-                <label class="block text-xs text-white/50 mb-1.5">Tu nombre</label>
+                <label class="block text-xs text-white/50 mb-1.5">Usuario</label>
                 <input type="text" name="nombre" required autofocus
+                       value="{{ nombre_value|default:'' }}"
                        class="w-full bg-[#111] border border-white/10 text-white text-sm px-3 py-2 focus:outline-none focus:border-white/40"
-                       placeholder="Nombre completo">
+                       placeholder="nombre de usuario">
             </div>
 
             <div>
-                <label class="block text-xs text-white/50 mb-1.5">Contraseña</label>
+                <label class="block text-xs text-white/50 mb-1.5">Contraseña nueva</label>
                 <input type="password" name="password" required minlength="8"
                        class="w-full bg-[#111] border border-white/10 text-white text-sm px-3 py-2 focus:outline-none focus:border-white/40"
                        placeholder="Mínimo 8 caracteres">
@@ -47,7 +50,7 @@
 
             <button type="submit"
                     class="w-full py-2.5 bg-orange-500 text-black text-sm font-semibold hover:bg-orange-400 transition-colors">
-                Activar cuenta
+                {% if is_first_time %}Activar cuenta{% else %}Guardar contraseña{% endif %}
             </button>
         </form>
     </div>

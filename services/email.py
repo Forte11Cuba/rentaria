@@ -137,6 +137,25 @@ def send_customer_activation(customer, token, request) -> bool:
     )
 
 
+def send_customer_password_link(customer, token, request) -> bool:
+    set_password_url = request.build_absolute_uri(
+        f'/{customer.tienda.slug}/account/activate/{token}/'
+    )
+    return smtp_sender.send(
+        to=customer.email,
+        subject=f'Configura tu contraseña — {customer.tienda.nombre}',
+        html=_base_html(customer.tienda.nombre, 'Configura tu contraseña', f'''
+            <p style="margin-bottom:16px">Recibimos una solicitud para configurar o restablecer la contraseña de tu cuenta.</p>
+            <p style="margin-bottom:24px">Haz clic en el botón para elegir una nueva contraseña. El enlace es de un solo uso.</p>
+            <a href="{set_password_url}"
+               style="display:inline-block;background:#f7931a;color:#1a1b1e;padding:10px 20px;font-weight:600;text-decoration:none;font-size:13px">
+              Configurar contraseña →
+            </a>
+            <p style="color:#6b7280;font-size:11px;margin-top:20px">Si no hiciste esta solicitud, ignora este mensaje.</p>'''),
+        tienda=customer.tienda,
+    )
+
+
 # ── Emails de reservas ─────────────────────────────────────────────────────────
 
 def send_customer_confirmation(orden) -> bool:
