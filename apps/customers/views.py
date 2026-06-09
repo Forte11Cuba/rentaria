@@ -16,9 +16,12 @@ RECOVER_IP_WINDOW = 3600
 
 
 def _client_ip(request):
+    x_real_ip = request.META.get('HTTP_X_REAL_IP', '').strip()
+    if x_real_ip:
+        return x_real_ip
     xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
     if xff:
-        return xff.split(',')[0].strip()
+        return xff.split(',')[-1].strip()
     return request.META.get('REMOTE_ADDR', '')
 
 
@@ -79,8 +82,9 @@ def recover(request, slug):
         email = request.POST.get('email', '').strip().lower()
         ip = _client_ip(request)
         ip_key = f'customer_recover_ip:{ip}'
-        ip_count = cache.get(ip_key, 0)
-        if ip_count >= RECOVER_IP_LIMIT:
+        cache.add(ip_key, 0, RECOVER_IP_WINDOW)
+        ip_count = cache.incr(ip_key)
+        if ip_count > RECOVER_IP_LIMIT:
             error = 'Demasiados intentos desde esta red. Intenta de nuevo en una hora.'
         elif not email:
             error = 'Ingresa tu correo electrónico.'
@@ -95,7 +99,6 @@ def recover(request, slug):
                     except Exception:
                         pass
                 cache.set(email_key, 1, RECOVER_COOLDOWN_SECONDS)
-            cache.set(ip_key, ip_count + 1, RECOVER_IP_WINDOW)
             sent = True
 
     return render(request, 'customers/recover.html', {
