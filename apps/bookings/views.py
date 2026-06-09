@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from apps.forms.models import FormField
 from apps.units.models import UnitModel, Unit
 from apps.shops.models import Shop
+from apps.shops.utils import get_shop_or_redirect
 from services.btcpay import create_invoice, verify_webhook_signature, verify_payment
 from services.confirmation import confirm_order
 from services.email import send_new_order_owner, send_customer_activation
@@ -34,7 +35,7 @@ def _generate_order_id():
 
 
 def _get_shop(slug):
-    return get_object_or_404(Shop, slug=slug, activa=True)
+    return get_shop_or_redirect(slug, activa=True)
 
 
 def _available_units(modelo, fecha_inicio, fecha_fin):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Shop
+from .models import Shop, ShopSlugAlias
 
 
 @admin.register(Shop)
@@ -8,3 +8,9 @@ class TiendaAdmin(admin.ModelAdmin):
     list_filter = ('activa',)
     search_fields = ('nombre', 'slug', 'dueno__email')
     prepopulated_fields = {'slug': ('nombre',)}
+
+
+@admin.register(ShopSlugAlias)
+class ShopSlugAliasAdmin(admin.ModelAdmin):
+    list_display = ('old_slug', 'shop', 'created_at')
+    search_fields = ('old_slug', 'shop__slug', 'shop__nombre')
